@@ -9509,6 +9509,16 @@ const casesData = [
             elements.wearInput.addEventListener('input', handleWearInput);
             elements.calculateBtn.addEventListener('click', calculateResults);
             
+            // 快速选择磨损值按钮
+            document.querySelectorAll('.wear-quick-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const value = parseFloat(btn.dataset.value);
+                    state.wearValue = value;
+                    elements.wearInput.value = value.toFixed(3);
+                    handleWearInput();
+                });
+            });
+            
             // 长按武器箱置顶
             let longPressTimer;
             elements.caseList.addEventListener('touchstart', (e) => {
