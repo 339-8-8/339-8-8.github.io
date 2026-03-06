@@ -126,6 +126,7 @@
             min-height: 44px;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             user-select: none;
         }
 
@@ -145,6 +146,33 @@
             background: #fffaf0;
             border-color: #ed8936;
             color: #744210;
+        }
+
+        /* 置顶按钮样式 */
+        .pin-btn {
+            margin-left: auto;
+            background: none;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            opacity: 0.7;
+        }
+
+        .pin-btn:hover {
+            background: rgba(66, 153, 225, 0.1);
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .pin-btn:active {
+            transform: scale(0.95);
+        }
+
+        .case-item:hover .pin-btn {
+            opacity: 1;
         }
 
         .pin-indicator {
@@ -10050,6 +10078,7 @@
                      data-id="${caseItem.id}" onclick="selectCase(${JSON.stringify(caseItem).replace(/"/g, '&quot;')})">
                     ${state.pinnedCases.includes(caseItem.id) ? '<span class="pin-indicator">⭐ </span>' : ''}
                     ${caseItem.name}
+                    <button class="pin-btn" onclick="event.stopPropagation(); pinCase(${caseItem.id})" title="点击置顶">📌</button>
                 </div>
             `).join('');
         }
@@ -10194,6 +10223,24 @@
             renderCaseList();
             
             alert(state.pinnedCases.includes(caseId) ? '已置顶' : '已取消置顶');
+        }
+
+        // 点击置顶功能
+        function pinCase(caseId) {
+            const index = state.pinnedCases.indexOf(caseId);
+            
+            // 如果已经置顶，则移动到最前面
+            if (index > -1) {
+                state.pinnedCases.splice(index, 1);
+            }
+            
+            // 将武器箱添加到置顶列表的最前面
+            state.pinnedCases.unshift(caseId);
+            
+            localStorage.setItem('pinnedCases', JSON.stringify(state.pinnedCases));
+            renderCaseList();
+            
+            alert('已置顶');
         }
 
         // 计算下级皮肤
