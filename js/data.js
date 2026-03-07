@@ -1,4 +1,4 @@
-const casesData = [
+window.casesData = [
   {
     "id": 1,
     "name": "控制收藏品",
@@ -5694,7 +5694,7 @@ const casesData = [
           },
           {
             "id": 639,
-            "name": "CZ75自动型 | 铜芯纤维",
+            "name": "CZ75 | 铜芯纤维",
             "minWear": 0,
             "maxWear": 0.563291,
             "image": ""

@@ -10,62 +10,131 @@
     <div class="container">
         <div class="header">
             <h1>CS:GO 反向汰换模拟</h1>
-            <p>数据仅供参考！</p>
+            <p>数据仅供参考！如果需要读取库存和模拟合成功能请在电脑上打开网页。有什么问题和建议可以在小黑盒搜索“CS炼金反向汰换模拟”，在帖子下面评论反馈。</p>
         </div>
 
         <div class="main-content">
-            <!-- 左侧：选择和输入区域 -->
-            <div class="section">
-                <div class="section-title">🎁 选择武器箱</div>
-                
-                <div class="search-container">
-                    <input type="text" class="search-input" placeholder="🔍 搜索武器箱..." id="searchInput">
-                </div>
-
-                <div class="case-list" id="caseList">
-                    <!-- 武器箱列表将通过JavaScript动态生成 -->
-                </div>
-            </div>
-
-            <div class="section">
-                <div class="section-title">📊 选择皮肤级别</div>
-                <div class="level-list" id="levelList">
-                    <!-- 皮肤级别列表将通过JavaScript动态生成 -->
-                </div>
-
-                <div class="section-title">🔫 选择皮肤</div>
-                <div class="skin-list" id="skinList">
-                    <!-- 皮肤列表将通过JavaScript动态生成 -->
-                </div>
-            </div>
-
-            <!-- 右侧：磨损值输入和计算 -->
-            <div class="section">
-                <div class="section-title">📏 输入磨损值</div>
-                <div class="wear-section">
-                    <input type="number" class="wear-input" id="wearInput" placeholder="0.000" step="0.001" min="0" max="1">
-                    <div class="wear-quick-buttons">
-                        <button class="wear-quick-btn" data-value="0.07">0.07</button>
-                        <button class="wear-quick-btn" data-value="0.15">0.15</button>
-                        <button class="wear-quick-btn" data-value="0.24">0.24</button>
-                        <button class="wear-quick-btn" data-value="0.38">0.38</button>
+            <!-- 左侧容器：主要功能 (40%) -->
+            <div class="left-container">
+                <div class="section">
+                    <div class="section-title">🎁 选择武器箱</div>
+                    
+                    <div class="search-container">
+                        <input type="text" class="search-input" placeholder="🔍 搜索武器箱..." id="searchInput">
                     </div>
-                    <div class="wear-range" id="wearRange">请先选择皮肤</div>
+
+                    <div class="case-list" id="caseList">
+                        <!-- 武器箱列表将通过JavaScript动态生成 -->
+                    </div>
                 </div>
 
-                <button class="calculate-btn" id="calculateBtn">🚀 计算下级皮肤</button>
+                <div class="section">
+                    <div class="section-title">📊 选择皮肤级别</div>
+                    <div class="level-list" id="levelList">
+                        <!-- 皮肤级别列表将通过JavaScript动态生成 -->
+                    </div>
 
-                <div class="section-title">📈 模拟结果</div>
-                <div class="results-section">
-                    <div id="resultsContainer">
-                        <div class="no-data">请完成以上步骤后查看模拟结果</div>
+                    <div class="section-title">🔫 选择皮肤</div>
+                    <div class="skin-list" id="skinList">
+                        <!-- 皮肤列表将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">📏 输入磨损值</div>
+                    <div class="wear-section">
+                        <input type="number" class="wear-input" id="wearInput" placeholder="0.000" step="0.001" min="0" max="1">
+                        <div class="wear-quick-buttons">
+                            <button class="wear-quick-btn" data-value="0.07">0.07</button>
+                            <button class="wear-quick-btn" data-value="0.15">0.15</button>
+                            <button class="wear-quick-btn" data-value="0.24">0.24</button>
+                            <button class="wear-quick-btn" data-value="0.38">0.38</button>
+                        </div>
+                        <div class="wear-range" id="wearRange">请先选择皮肤</div>
+                    </div>
+
+                    <button class="calculate-btn" id="calculateBtn">🚀 计算下级皮肤</button>
+
+                    <div class="section-title">📈 模拟结果</div>
+                    <div class="results-section">
+                        <div id="resultsContainer">
+                            <div class="no-data">请完成以上步骤后查看模拟结果</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧容器：皮肤数据处理 (60%) -->
+            <div class="right-container">
+                <div class="section">
+                    <div class="section-title">📋 皮肤数据处理</div>
+                    
+                    <div class="paste-section">
+                        <div class="paste-left">
+                            <textarea class="paste-textarea" id="pasteTextarea" placeholder="粘贴皮肤数据..."></textarea>
+                        </div>
+                        <div class="paste-middle">
+                            <div class="button-row">
+                                <button class="process-btn" id="processBtn">🔍 处理</button>
+                                <button class="export-btn" id="exportBtn">📥 导出</button>
+                            </div>
+                            <div class="process-status" id="processStatus" style="display: none;">
+                                <div class="status-info">
+                                    <span class="status-text" id="statusText">等待处理...</span>
+                                    <span class="status-count" id="statusCount"></span>
+                                </div>
+                                <div class="progress-bar" id="progressBar">
+                                    <div class="progress-fill" id="progressFill"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="paste-right">
+                            <div class="unmatched-section-compact" id="unmatchedSectionCompact">
+                                <div class="unmatched-title-compact">❌ 未匹配</div>
+                                <div class="unmatched-list-compact" id="unmatchedListCompact">
+                                    <div class="no-data-compact">暂无未匹配数据</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-title matched-title">✅ 匹配结果</div>
+                    
+                    <!-- 筛选区域 -->
+                    <div class="filter-section" id="filterSection" style="display: none;">
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label class="filter-label">选择武器箱</label>
+                                <select class="filter-select" id="crateSelect">
+                                    <option value="">全部武器箱</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">选择皮肤级别</label>
+                                <select class="filter-select" id="gradeSelect">
+                                    <option value="">全部级别</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">选择皮肤</label>
+                                <select class="filter-select" id="skinSelect">
+                                    <option value="">全部皮肤</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="import-results" id="importResults">
+                        <div class="no-data">请先处理皮肤数据</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    
     <!-- 引入数据文件 -->
     <script src="js/data.js"></script>
     <script src="js/index.js"></script>
+    <script src="js/user_inventory_enhanced.js"></script>
 </body>
 </html>

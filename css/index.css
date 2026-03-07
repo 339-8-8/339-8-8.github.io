@@ -51,6 +51,18 @@ body {
     gap: 16px;
 }
 
+/* 移动端：只显示左侧容器 */
+@media (max-width: 767px) {
+    .right-container {
+        display: none !important;
+    }
+    
+    .left-container {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
 .section {
     background: #ffffff;
     border-radius: 12px;
@@ -506,24 +518,54 @@ body {
 /* 响应式设计 - 桌面端优化 */
 @media (min-width: 768px) {
     .container {
-        max-width: 768px;
-        margin: 20px auto;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        max-width: 100%;
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
     }
     
     .header {
-        border-radius: 16px 16px 0 0;
+        border-radius: 0;
     }
     
     .main-content {
-        padding: 24px;
+        flex-direction: row !important;
+        align-items: flex-start;
+        gap: 24px;
+        justify-content: space-between;
+        max-width: 100%;
+        margin: 0;
+        padding: 0 20px;
+        width: 100% !important;
+    }
+    
+    .left-container {
+        flex: 0 0 40%;
+        min-width: 350px;
+        max-width: 40%;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .right-container {
+        flex: 0 0 60%;
+        min-width: 400px;
+        max-width: 60%;
+        display: flex;
+        flex-direction: column;
         gap: 20px;
     }
     
     .section {
         padding: 20px;
-        border-radius: 12px;
+        border-radius: 14px;
+    }
+    
+    .section-title {
+        font-size: 1.1rem;
+        padding: 14px 18px;
+        margin: 0 0 18px 0;
     }
     
     .skin-list {
@@ -569,4 +611,470 @@ body {
     text-align: center;
     padding: 20px;
     color: #718096;
+}
+
+/* 皮肤数据处理区域样式 - 美化版 */
+.paste-section {
+    background: linear-gradient(135deg, #f8fafc 0%, #f7fafc 100%);
+    border-radius: 16px;
+    padding: 16px;
+    border: 2px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    display: flex;
+    gap: 16px;
+}
+
+.paste-left {
+    flex: 0 0 45%;
+}
+
+.paste-middle {
+    flex: 0 0 20%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+}
+
+.paste-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 120px;
+}
+
+.paste-textarea {
+    width: 100%;
+    min-height: 120px;
+    max-height: 120px;
+    height: 120px;
+    padding: 14px;
+    border: 2px solid #cbd5e0;
+    border-radius: 12px;
+    font-size: 14px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    resize: none;
+    box-sizing: border-box;
+    line-height: 1.5;
+    background: #ffffff;
+    transition: all 0.3s ease;
+}
+
+.paste-textarea:focus {
+    outline: none;
+    border-color: #48bb78;
+    box-shadow: 0 0 0 4px rgba(72, 187, 120, 0.15);
+    transform: translateY(-1px);
+}
+
+.button-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.button-row .process-btn,
+.button-row .export-btn {
+    margin-bottom: 0;
+}
+
+.process-btn {
+    width: 100%;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+    letter-spacing: 0.3px;
+    line-height: 1.4;
+}
+
+.process-btn:hover {
+    background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
+}
+
+.process-btn:active {
+    transform: scale(0.97);
+}
+
+.export-btn {
+    width: 100%;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+    letter-spacing: 0.3px;
+    line-height: 1.4;
+}
+
+.export-btn:hover {
+    background: linear-gradient(135deg, #3182ce 0%, #2c5282 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(66, 153, 225, 0.4);
+}
+
+.export-btn:active {
+    transform: scale(0.97);
+}
+
+.process-status {
+    background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+    border-radius: 10px;
+    padding: 10px;
+    border: 2px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.status-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.status-text {
+    font-weight: 700;
+    color: #2d3748;
+    font-size: 13px;
+}
+
+.status-count {
+    color: #718096;
+    font-size: 12px;
+    font-weight: 600;
+    background: #edf2f7;
+    padding: 3px 8px;
+    border-radius: 12px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%);
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #48bb78 0%, #38a169 50%, #48bb78 100%);
+    width: 0%;
+    transition: width 0.4s ease;
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+}
+
+/* 紧凑的未匹配皮肤样式 */
+.unmatched-section-compact {
+    background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+    border-radius: 10px;
+    padding: 10px;
+    border: 2px solid #fc8181;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 120px;
+    max-height: 120px;
+}
+
+.unmatched-title-compact {
+    font-weight: 700;
+    color: #742a2a;
+    font-size: 13px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+
+.unmatched-list-compact {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.unmatched-list-compact::-webkit-scrollbar {
+    width: 6px;
+}
+
+.unmatched-list-compact::-webkit-scrollbar-track {
+    background: #fed7d7;
+    border-radius: 3px;
+}
+
+.unmatched-list-compact::-webkit-scrollbar-thumb {
+    background: #fc8181;
+    border-radius: 3px;
+}
+
+.unmatched-list-compact::-webkit-scrollbar-thumb:hover {
+    background: #f56565;
+}
+
+.no-data-compact {
+    text-align: center;
+    padding: 20px 10px;
+    color: #a0aec0;
+    font-size: 12px;
+}
+
+.unmatched-item-compact {
+    background: white;
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-bottom: 4px;
+}
+
+.unmatched-item-compact:last-child {
+    margin-bottom: 0;
+}
+
+.unmatched-name-compact {
+    font-weight: 600;
+    color: #742a2a;
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
+
+/* 匹配结果标题样式 */
+.matched-title {
+    margin-top: 20px !important;
+    margin-bottom: 12px !important;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.import-results {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+    min-height: 120px;
+    max-height: 320px;
+    overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.import-result-item {
+    padding: 14px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.import-result-item:hover {
+    background: #f7fafc;
+}
+
+.import-result-item:last-child {
+    border-bottom: none;
+}
+
+.import-skin-name {
+    font-weight: 600;
+    color: #2d3748;
+    flex: 1;
+    font-size: 14px;
+}
+
+.import-skin-wear {
+    color: #2f855a;
+    font-size: 13px;
+    background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    border: 1px solid #68d391;
+}
+
+.import-summary {
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+    border-top: 2px solid #68d391;
+    font-size: 14px;
+    color: #22543d;
+    font-weight: 600;
+    line-height: 1.8;
+}
+
+/* 未匹配皮肤样式 - 美化版 */
+.unmatched-section {
+    margin-top: 24px;
+    border-top: 2px solid #e2e8f0;
+    padding-top: 24px;
+}
+
+.unmatched-title {
+    background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%) !important;
+    border-left-color: #f56565 !important;
+    color: #742a2a !important;
+    border-radius: 12px !important;
+}
+
+.unmatched-item {
+    padding: 12px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+    transition: all 0.2s ease;
+}
+
+.unmatched-item:hover {
+    background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+}
+
+.unmatched-item:last-child {
+    border-bottom: none;
+}
+
+.unmatched-name {
+    font-weight: 600;
+    color: #742a2a;
+    flex: 1;
+    font-size: 14px;
+}
+
+.unmatched-wear {
+    color: #c53030;
+    font-size: 13px;
+    background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    border: 1px solid #f56565;
+}
+
+/* 筛选区域样式 */
+.filter-section {
+    background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    border: 2px solid #cbd5e0;
+}
+
+.filter-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.filter-label {
+    display: block;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.filter-select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #cbd5e0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    background: white;
+    color: #2d3748;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.filter-select:hover {
+    border-color: #4299e1;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: #4299e1;
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+}
+
+/* 紧凑的皮肤列表样式 */
+.compact-skin-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 8px;
+    padding: 8px;
+}
+
+.compact-skin-item {
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    border-radius: 8px;
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.compact-skin-item:hover {
+    background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.compact-skin-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.compact-skin-name {
+    font-weight: 600;
+    color: #2d3748;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.compact-skin-details {
+    font-size: 11px;
+    color: #718096;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.compact-skin-wear {
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
