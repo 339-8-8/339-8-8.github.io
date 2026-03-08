@@ -67,38 +67,53 @@
             <!-- 右侧容器：皮肤数据处理 (60%) -->
             <div class="right-container">
                 <div class="section">
-                    <div class="section-title">📋 皮肤数据处理</div>
+                    <div class="section-title">
+                        📋 数据处理
+                        <span class="help-icon" id="helpIcon" title="点击查看使用说明">?</span>
+                    </div>
                     
                     <div class="paste-section">
-                        <div class="paste-left">
-                            <textarea class="paste-textarea" id="pasteTextarea" placeholder="粘贴皮肤数据..."></textarea>
-                        </div>
-                        <div class="paste-middle">
-                            <div class="button-row">
+                        <div class="paste-input-row">
+                            <div class="paste-textarea-container">
+                                <textarea class="paste-textarea" id="pasteTextarea" placeholder="粘贴数据..."></textarea>
+                            </div>
+                            <div class="paste-button-container">
                                 <button class="process-btn" id="processBtn">🔍 处理</button>
-                                <button class="export-btn" id="exportBtn">📥 导出</button>
-                            </div>
-                            <div class="process-status" id="processStatus" style="display: none;">
-                                <div class="status-info">
-                                    <span class="status-text" id="statusText">等待处理...</span>
-                                    <span class="status-count" id="statusCount"></span>
-                                </div>
-                                <div class="progress-bar" id="progressBar">
-                                    <div class="progress-fill" id="progressFill"></div>
+                                <div class="process-status" id="processStatus" style="display: none;">
+                                    <div class="status-info">
+                                        <span class="status-text" id="statusText">等待处理...</span>
+                                        <span class="status-count" id="statusCount"></span>
+                                    </div>
+                                    <div class="progress-bar" id="progressBar">
+                                        <div class="progress-fill" id="progressFill"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="paste-right">
-                            <div class="summary-section-compact" id="summarySectionCompact">
-                                <div class="summary-title-compact">📊 处理结果</div>
-                                <div class="summary-content-compact" id="summaryContentCompact">
-                                    请先处理皮肤数据
+                        
+                        <div class="paste-results" id="pasteResults" style="display: none;">
+                            <div class="results-header">
+                                <div class="results-title">📊 处理结果</div>
+                                <button class="results-toggle" id="resultsToggle">▼</button>
+                            </div>
+                            <div class="results-content" id="resultsContent">
+                                <div class="summary-section-compact" id="summarySectionCompact">
+                                    <div class="summary-content-compact" id="summaryContentCompact">
+                                        请先处理皮肤数据
+                                    </div>
+                                </div>
+                                <div class="unmatched-section" id="unmatchedSection" style="display: none;">
+                                    <div class="unmatched-title">❌ 未匹配皮肤</div>
+                                    <div class="unmatched-list" id="unmatchedList"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="section-title matched-title">📦 皮肤库存</div>
+                    <div class="section-title matched-title">
+                        📦 皮肤库存
+                        <span class="inventory-count" id="inventoryCount">0</span>
+                    </div>
                     
                     <!-- 筛选区域 -->
                     <div class="filter-section" id="filterSection" style="display: none;">
@@ -140,8 +155,15 @@
                                 <label class="tradeup-label">目标产物磨损值</label>
                                 <input type="text" class="tradeup-input" id="targetWearValue" placeholder="输入目标产物磨损值">
                             </div>
+                            <div class="tradeup-input-group">
+                                <label class="tradeup-label">&nbsp;</label>
+                                <button class="tradeup-btn tradeup-btn-fetch" id="tradeupFetchBtn">📋 从左侧获取产物数据</button>
+                            </div>
                         </div>
-                        <button class="tradeup-btn" id="tradeupBtn">执行汰换计算</button>
+                        <div class="tradeup-buttons">
+                            <button class="tradeup-btn" id="tradeupBtn">执行汰换计算</button>
+                            <button class="tradeup-btn tradeup-btn-confirm" id="tradeupConfirmBtn" style="display: none;">确认并清空</button>
+                        </div>
                         <div class="tradeup-result" id="tradeupResult"></div>
                     </div>
                 </div>
@@ -153,5 +175,45 @@
     <script src="js/data.js"></script>
     <script src="js/index.js"></script>
     <script src="js/user_inventory_enhanced.js"></script>
+    <!-- <script>
+        // 创建一个新的 Image 对象，在后台加载图片，实现计数
+        (new Image()).src = "https://visitor-badge.laobi.icu/badge?page_id=339-8-8.github.io";
+    </script> -->
+    
+    <!-- 帮助模态框 -->
+    <div class="help-modal" id="helpModal">
+        <div class="help-modal-content">
+            <div class="help-modal-title">
+                📖 使用说明
+                <button class="help-modal-close" id="helpModalClose">×</button>
+            </div>
+            
+            <div class="help-modal-section">
+                <div class="help-modal-section-title">1. 获取皮肤数据</div>
+                <div class="help-modal-section-content">
+                    <ul>
+                        <li>打开BUFF网页，点击我的库存，显示全部切换为显示可出售</li>
+                        <li>在网址上找到page_size=50参数，把50改为可出售的全部皮肤数量</li>
+                        <li>点击刷新网页，现在一页就能显示可出售的全部皮肤数据了</li>
+                        <li>ctrl+a复制网页数据即可</li>
+                    </ul>
+                </div>
+            </div>
+            
+            
+            <div class="help-modal-section">
+                <div class="help-modal-section-title">2. 如何使用一键汰换？</div>
+                <div class="help-modal-section-content">
+                    <ul>
+                        <li>方式一：在左侧选择皮肤和输入磨损值，点击"从左侧获取目标产物数据"</li>
+                        <li>方式二：直接在输入框中填写目标产物名字和磨损值（尽量不要极限卡磨损！）</li>
+                        <li>点击"执行汰换计算"查找最佳的10个下级皮肤组合</li>
+                        <li>确认无误后点击"确认并清空"在皮肤库存中删除这10个皮肤</li>
+                    </ul>
+                </div>
+            </div>
+            
+        </div>
+    </div>
 </body>
 </html>

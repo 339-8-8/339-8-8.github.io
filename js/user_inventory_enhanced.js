@@ -5,6 +5,9 @@ const UserInventoryEnhanced = {
     // 存储处理后的数据（全局可访问）
     processedData: null,
     
+    // 存储当前最佳汰换结果
+    currentTradeupResult: null,
+    
     // 获取处理后的数据（供外部调用）
     getProcessedData: function() {
         return this.processedData;
@@ -288,9 +291,7 @@ const UserInventoryEnhanced = {
         const progressFill = document.getElementById('progressFill');
         const importResults = document.getElementById('importResults');
         const processBtn = document.getElementById('processBtn');
-        const exportBtn = document.getElementById('exportBtn');
         const processStatus = document.getElementById('processStatus');
-        const buttonRow = document.querySelector('.button-row');
         
         const pastedText = pasteTextarea.value.trim();
         
@@ -300,7 +301,7 @@ const UserInventoryEnhanced = {
         }
         
         // 隐藏按钮，显示进度条
-        buttonRow.style.display = 'none';
+        processBtn.style.display = 'none';
         processStatus.style.display = 'block';
         
         // 更新状态
@@ -327,7 +328,7 @@ const UserInventoryEnhanced = {
                 // 隐藏进度条，显示按钮
                 setTimeout(() => {
                     processStatus.style.display = 'none';
-                    buttonRow.style.display = 'flex';
+                    processBtn.style.display = 'block';
                 }, 500);
                 
                 // 显示汇总信息（紧凑版）
@@ -340,9 +341,10 @@ const UserInventoryEnhanced = {
                 const fileContent = this.generateUserInventoryFile(results);
                 this.saveToFile(fileContent);
                 
-                // 显示导出按钮
-                if (exportBtn) {
-                    exportBtn.style.display = 'block';
+                // 显示处理结果区域
+                const pasteResults = document.getElementById('pasteResults');
+                if (pasteResults) {
+                    pasteResults.style.display = 'block';
                 }
                 
                 // 显示一键汰换区域
@@ -359,7 +361,7 @@ const UserInventoryEnhanced = {
                 
                 // 隐藏进度条，显示按钮
                 processStatus.style.display = 'none';
-                buttonRow.style.display = 'flex';
+                processBtn.style.display = 'block';
                 
                 alert('处理皮肤数据时出错，请检查控制台获取详细信息');
             }
@@ -399,11 +401,26 @@ const UserInventoryEnhanced = {
     displaySummaryCompact: function(results) {
         const summaryContent = document.getElementById('summaryContentCompact');
         summaryContent.innerHTML = `
-            <strong>处理完成！</strong><br>
             共处理 ${results.summary.totalProcessed} 个皮肤<br>
             匹配成功: ${results.summary.totalMatched} 个 (${results.summary.matchRate}%)<br>
             未匹配: ${results.summary.totalUnmatched} 个<br>
         `;
+        
+        // 显示未匹配皮肤
+        const unmatchedSection = document.getElementById('unmatchedSection');
+        const unmatchedList = document.getElementById('unmatchedList');
+        
+        if (results.summary.totalUnmatched > 0 && results.unmatched && results.unmatched.length > 0) {
+            unmatchedSection.style.display = 'block';
+            
+            let html = '';
+            results.unmatched.forEach(skin => {
+                html += `<div class="unmatched-item">• ${skin.originalName || skin.processedName}</div>`;
+            });
+            unmatchedList.innerHTML = html;
+        } else {
+            unmatchedSection.style.display = 'none';
+        }
     },
     
     // 填充筛选选项
@@ -519,6 +536,12 @@ const UserInventoryEnhanced = {
     // 紧凑显示皮肤列表
     filterAndDisplayCompact: function(skins) {
         const container = document.getElementById('importResults');
+        const inventoryCount = document.getElementById('inventoryCount');
+        
+        // 更新库存数量
+        if (inventoryCount) {
+            inventoryCount.textContent = skins.length;
+        }
         
         if (!skins.length) {
             container.innerHTML = '<div class="no-data">没有符合条件的皮肤</div>';
@@ -740,8 +763,11 @@ const UserInventoryEnhanced = {
         bestResult.group.forEach(skin => {
             skinListHtml += `
                 <div class="tradeup-skin-item">
-                    <div class="tradeup-skin-name">${skin.skin}</div>
-                    <div class="tradeup-skin-wear">磨损: ${skin.wear} (转换: ${parseFloat(skin.convertedWear).toFixed(6)})</div>
+                    <div class="tradeup-skin-info">
+                        <div class="tradeup-skin-name">${skin.skin}</div>
+                        <div class="tradeup-skin-details">${skin.crate} · ${skin.grade}</div>
+                    </div>
+                    <div class="tradeup-skin-wear">${skin.wear}</div>
                 </div>
             `;
         });
@@ -749,12 +775,119 @@ const UserInventoryEnhanced = {
         
         resultDiv.className = 'tradeup-result success';
         resultDiv.innerHTML = `
-            <div style="font-weight: 700; margin-bottom: 8px;">✅ 找到最佳组合！</div>
-            <div>目标产物: ${targetSkin.name}</div>
-            <div>目标磨损: ${targetWearValue.toFixed(6)}</div>
-            <div>结果磨损: ${resultingWear.toFixed(6)}</div>
-            <div>转换磨损总和: ${bestResult.sum.toFixed(6)} / ${targetConvertedSum.toFixed(6)}</div>
+            <div class="tradeup-summary">
+                <div class="tradeup-summary-title">✅ 找到最佳组合！</div>
+                <div class="tradeup-summary-details">
+                    <div><span class="summary-label">目标产物:</span> <span class="summary-value">${targetSkin.name}</span></div>
+                    <div><span class="summary-label">目标磨损:</span> <span class="summary-value">${targetWearValue.toFixed(6)}</span></div>
+                    <div><span class="summary-label">结果磨损:</span> <span class="summary-value highlight">${resultingWear.toFixed(6)}</span></div>
+                </div>
+            </div>
             ${skinListHtml}
+        `;
+        
+        // 保存当前结果并显示确认按钮
+        this.currentTradeupResult = {
+            skins: bestResult.group,
+            targetSkin: targetSkin,
+            targetWear: targetWearValue,
+            resultingWear: resultingWear
+        };
+        
+        const confirmBtn = document.getElementById('tradeupConfirmBtn');
+        if (confirmBtn) {
+            confirmBtn.style.display = 'block';
+        }
+    },
+
+    // 确认并清空
+    confirmAndClear: function() {
+        if (!this.currentTradeupResult) {
+            return;
+        }
+        
+        const skinsToRemove = this.currentTradeupResult.skins;
+        
+        // 从processedData.matched中删除这10个皮肤
+        if (this.processedData && this.processedData.matched) {
+            // 创建一个Set来存储要删除的皮肤的唯一标识
+            const skinsToRemoveSet = new Set(skinsToRemove.map(s => `${s.skin}-${s.wear}`));
+            
+            // 过滤掉要删除的皮肤
+            this.processedData.matched = this.processedData.matched.filter(skin => {
+                return !skinsToRemoveSet.has(`${skin.skin}-${skin.wear}`);
+            });
+            
+            // 更新summary
+            this.processedData.summary.totalMatched = this.processedData.matched.length;
+            this.processedData.summary.totalUnmatched = this.processedData.unmatched.length;
+            this.processedData.summary.matchRate = this.processedData.summary.totalProcessed > 0 ? 
+                (this.processedData.summary.totalMatched / this.processedData.summary.totalProcessed * 100).toFixed(2) : 0;
+            
+            // 更新window对象上的数据
+            window.userProcessedData = this.processedData;
+            
+            // 更新皮肤库存显示
+            const importResults = document.getElementById('importResults');
+            this.displayResults(this.processedData.matched, importResults, 'matched');
+            
+            // 更新汇总信息显示
+            this.displaySummaryCompact(this.processedData);
+        }
+        
+        // 清空结果
+        const resultDiv = document.getElementById('tradeupResult');
+        resultDiv.className = 'tradeup-result';
+        resultDiv.innerHTML = '';
+        
+        // 隐藏确认按钮
+        const confirmBtn = document.getElementById('tradeupConfirmBtn');
+        if (confirmBtn) {
+            confirmBtn.style.display = 'none';
+        }
+        
+        // 清空当前结果
+        this.currentTradeupResult = null;
+    },
+
+    // 从左侧获取目标产物数据
+    fetchFromLeft: function() {
+        const resultDiv = document.getElementById('tradeupResult');
+        resultDiv.className = 'tradeup-result';
+        resultDiv.innerHTML = '';
+        
+        // 检查左侧是否有state对象和选中的皮肤
+        if (typeof state === 'undefined') {
+            resultDiv.className = 'tradeup-result error';
+            resultDiv.innerHTML = '❌ 无法获取左侧数据';
+            return;
+        }
+        
+        if (!state.selectedSkin) {
+            resultDiv.className = 'tradeup-result error';
+            resultDiv.innerHTML = '❌ 请先在左侧选择一个皮肤';
+            return;
+        }
+        
+        if (typeof state.wearValue === 'undefined' || state.wearValue === null) {
+            resultDiv.className = 'tradeup-result error';
+            resultDiv.innerHTML = '❌ 请先在左侧输入磨损值';
+            return;
+        }
+        
+        // 填充目标产物名字
+        const targetSkinNameInput = document.getElementById('targetSkinName');
+        targetSkinNameInput.value = state.selectedSkin.name;
+        
+        // 填充目标产物磨损值
+        const targetWearValueInput = document.getElementById('targetWearValue');
+        targetWearValueInput.value = state.wearValue.toFixed(6);
+        
+        resultDiv.className = 'tradeup-result success';
+        resultDiv.innerHTML = `
+            <div style="font-weight: 700;">✅ 已获取目标产物数据！</div>
+            <div>目标产物: ${state.selectedSkin.name}</div>
+            <div>目标磨损: ${state.wearValue.toFixed(6)}</div>
         `;
     }
 };
@@ -768,17 +901,82 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    const exportBtn = document.getElementById('exportBtn');
-    if (exportBtn) {
-        exportBtn.addEventListener('click', function() {
-            UserInventoryEnhanced.exportData();
-        });
-    }
-    
     const tradeupBtn = document.getElementById('tradeupBtn');
     if (tradeupBtn) {
         tradeupBtn.addEventListener('click', function() {
             UserInventoryEnhanced.executeTradeup();
         });
+    }
+    
+    const tradeupConfirmBtn = document.getElementById('tradeupConfirmBtn');
+    if (tradeupConfirmBtn) {
+        tradeupConfirmBtn.addEventListener('click', function() {
+            UserInventoryEnhanced.confirmAndClear();
+        });
+    }
+    
+    const tradeupFetchBtn = document.getElementById('tradeupFetchBtn');
+    if (tradeupFetchBtn) {
+        tradeupFetchBtn.addEventListener('click', function() {
+            UserInventoryEnhanced.fetchFromLeft();
+        });
+    }
+    
+    // 帮助图标点击事件
+    const helpIcon = document.getElementById('helpIcon');
+    const helpModal = document.getElementById('helpModal');
+    const helpModalClose = document.getElementById('helpModalClose');
+    
+    if (helpIcon && helpModal) {
+        helpIcon.addEventListener('click', function() {
+            helpModal.classList.add('show');
+        });
+    }
+    
+    if (helpModalClose && helpModal) {
+        helpModalClose.addEventListener('click', function() {
+            helpModal.classList.remove('show');
+        });
+    }
+    
+    // 点击模态框外部关闭
+    if (helpModal) {
+        helpModal.addEventListener('click', function(e) {
+            if (e.target === helpModal) {
+                helpModal.classList.remove('show');
+            }
+        });
+    }
+    
+    // 处理结果展开/收起功能
+    const resultsToggle = document.getElementById('resultsToggle');
+    const resultsContent = document.getElementById('resultsContent');
+    
+    if (resultsToggle && resultsContent) {
+        resultsToggle.addEventListener('click', function() {
+            const isCollapsed = resultsContent.classList.contains('collapsed');
+            
+            if (isCollapsed) {
+                // 展开
+                resultsContent.classList.remove('collapsed');
+                resultsToggle.textContent = '▼';
+                resultsToggle.classList.remove('collapsed');
+            } else {
+                // 收起
+                resultsContent.classList.add('collapsed');
+                resultsToggle.textContent = '▶';
+                resultsToggle.classList.add('collapsed');
+            }
+        });
+        
+        // 点击标题也可以展开/收起
+        const resultsHeader = document.querySelector('.results-header');
+        if (resultsHeader) {
+            resultsHeader.addEventListener('click', function(e) {
+                if (e.target !== resultsToggle) {
+                    resultsToggle.click();
+                }
+            });
+        }
     }
 });
