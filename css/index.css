@@ -779,12 +779,12 @@ body {
     animation: shimmer 2s infinite;
 }
 
-/* 紧凑的未匹配皮肤样式 */
-.unmatched-section-compact {
-    background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+/* 紧凑的汇总信息样式 */
+.summary-section-compact {
+    background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
     border-radius: 10px;
     padding: 10px;
-    border: 2px solid #fc8181;
+    border: 2px solid #48bb78;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -793,36 +793,26 @@ body {
     max-height: 120px;
 }
 
-.unmatched-title-compact {
+.summary-title-compact {
     font-weight: 700;
-    color: #742a2a;
+    color: #22543d;
     font-size: 13px;
     margin-bottom: 8px;
     flex-shrink: 0;
 }
 
-.unmatched-list-compact {
+.summary-content-compact {
     flex: 1;
     overflow-y: auto;
     min-height: 0;
+    font-size: 12px;
+    color: #22543d;
+    line-height: 1.6;
 }
 
-.unmatched-list-compact::-webkit-scrollbar {
-    width: 6px;
-}
-
-.unmatched-list-compact::-webkit-scrollbar-track {
-    background: #fed7d7;
-    border-radius: 3px;
-}
-
-.unmatched-list-compact::-webkit-scrollbar-thumb {
-    background: #fc8181;
-    border-radius: 3px;
-}
-
-.unmatched-list-compact::-webkit-scrollbar-thumb:hover {
-    background: #f56565;
+.summary-content-compact strong {
+    color: #22543d;
+    font-weight: 700;
 }
 
 .no-data-compact {
@@ -830,27 +820,6 @@ body {
     padding: 20px 10px;
     color: #a0aec0;
     font-size: 12px;
-}
-
-.unmatched-item-compact {
-    background: white;
-    border-radius: 6px;
-    padding: 6px 10px;
-    margin-bottom: 4px;
-}
-
-.unmatched-item-compact:last-child {
-    margin-bottom: 0;
-}
-
-.unmatched-name-compact {
-    font-weight: 600;
-    color: #742a2a;
-    font-size: 11px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: block;
 }
 
 /* 匹配结果标题样式 */
@@ -1071,10 +1040,136 @@ body {
 .compact-skin-wear {
     background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
     color: white;
-    padding: 4px 10px;
+    padding: 6px 10px;
     border-radius: 12px;
     font-size: 12px;
     font-weight: 700;
     white-space: nowrap;
     flex-shrink: 0;
+    text-align: center;
+    line-height: 1.4;
+}
+
+/* 一键汰换样式 */
+.tradeup-section {
+    background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+    border-radius: 16px;
+    padding: 20px;
+    border: 2px solid #fc8181;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    margin-top: 20px;
+}
+
+.tradeup-title {
+    background: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    margin: 0 0 16px 0;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.tradeup-inputs {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.tradeup-input-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.tradeup-label {
+    font-weight: 600;
+    color: #2d3748;
+    font-size: 14px;
+}
+
+.tradeup-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.tradeup-input:focus {
+    outline: none;
+    border-color: #fc8181;
+    box-shadow: 0 0 0 3px rgba(252, 129, 129, 0.2);
+}
+
+.tradeup-btn {
+    width: 100%;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(252, 129, 129, 0.4);
+}
+
+.tradeup-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(252, 129, 129, 0.5);
+}
+
+.tradeup-btn:active {
+    transform: translateY(0);
+}
+
+.tradeup-result {
+    margin-top: 16px;
+    padding: 16px;
+    border-radius: 10px;
+    background: white;
+    border: 2px solid #e2e8f0;
+}
+
+.tradeup-result.error {
+    background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+    border-color: #fc8181;
+    color: #c53030;
+}
+
+.tradeup-result.success {
+    background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+    border-color: #48bb78;
+    color: #22543d;
+}
+
+.tradeup-skin-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.tradeup-skin-item {
+    background: white;
+    border-radius: 6px;
+    padding: 8px 10px;
+    border: 1px solid #e2e8f0;
+    font-size: 12px;
+}
+
+.tradeup-skin-name {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.tradeup-skin-wear {
+    font-size: 11px;
+    color: #718096;
+    margin-top: 2px;
 }

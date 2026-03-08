@@ -1,4 +1,7 @@
 const UserInventoryEnhanced = {
+    // 皮肤级别顺序（从低到高）
+    gradeOrder: ['消费级', '工业级', '军规级', '受限级', '保密级', '隐秘级'],
+    
     // 存储处理后的数据（全局可访问）
     processedData: null,
     
@@ -95,6 +98,8 @@ const UserInventoryEnhanced = {
                             crate: crate.name,
                             grade: level.name,
                             skin: skin.name,
+                            minWear: skin.minWear,
+                            maxWear: skin.maxWear,
                             matched: true,
                             matchType: 'exact'
                         };
@@ -113,6 +118,8 @@ const UserInventoryEnhanced = {
                             crate: crate.name,
                             grade: level.name,
                             skin: skin.name,
+                            minWear: skin.minWear,
+                            maxWear: skin.maxWear,
                             matched: true,
                             matchType: 'contains'
                         };
@@ -131,6 +138,8 @@ const UserInventoryEnhanced = {
                             crate: crate.name,
                             grade: level.name,
                             skin: skin.name,
+                            minWear: skin.minWear,
+                            maxWear: skin.maxWear,
                             matched: true,
                             matchType: 'partial'
                         };
@@ -164,10 +173,22 @@ const UserInventoryEnhanced = {
             const matchResult = this.findMatchingSkin(skin.processedName, casesData);
             
             if (matchResult.matched) {
+                // 计算转换磨损值
+                let convertedWear = 0;
+                const wearRange = matchResult.maxWear - matchResult.minWear;
+                if (wearRange > 0) {
+                    convertedWear = (skin.wear - matchResult.minWear) / wearRange;
+                    // 确保在0-1范围内
+                    convertedWear = Math.max(0, Math.min(1, convertedWear));
+                }
+                
                 results.matched.push({
                     originalName: skin.originalName,
                     processedName: skin.processedName,
                     wear: skin.wear,
+                    minWear: matchResult.minWear,
+                    maxWear: matchResult.maxWear,
+                    convertedWear: convertedWear.toFixed(6),
                     crate: matchResult.crate,
                     grade: matchResult.grade,
                     skin: matchResult.skin,
@@ -213,6 +234,9 @@ const UserInventoryEnhanced = {
             organizedData[skin.crate][skin.grade].push({
                 name: skin.skin,
                 wear: skin.wear,
+                minWear: skin.minWear,
+                maxWear: skin.maxWear,
+                convertedWear: skin.convertedWear,
                 originalName: skin.originalName,
                 matchType: skin.matchType
             });
@@ -306,22 +330,25 @@ const UserInventoryEnhanced = {
                     buttonRow.style.display = 'flex';
                 }, 500);
                 
-                // 显示匹配结果
-                this.displayResults(results.matched, importResults, 'matched');
+                // 显示汇总信息（紧凑版）
+                this.displaySummaryCompact(results);
                 
-                // 显示未匹配结果（紧凑版）
-                this.displayUnmatchedCompact(results.unmatched);
+                // 显示皮肤库存（完整版）
+                this.displayResults(results.matched, importResults, 'matched');
                 
                 // 生成并保存文件
                 const fileContent = this.generateUserInventoryFile(results);
                 this.saveToFile(fileContent);
                 
-                // 显示汇总信息
-                this.showSummary(results);
-                
                 // 显示导出按钮
                 if (exportBtn) {
                     exportBtn.style.display = 'block';
+                }
+                
+                // 显示一键汰换区域
+                const tradeupSection = document.getElementById('tradeupSection');
+                if (tradeupSection) {
+                    tradeupSection.style.display = 'block';
                 }
                 
                 
@@ -360,32 +387,23 @@ const UserInventoryEnhanced = {
     
     // 显示未匹配皮肤（紧凑版）
     displayUnmatchedCompact: function(results) {
-        const unmatchedList = document.getElementById('unmatchedListCompact');
-        
-        if (!results || !results.length) {
-            unmatchedList.innerHTML = '<div class="no-data-compact">暂无未匹配数据</div>';
-            return;
-        }
-        
-        // 去重
-        const seenNames = new Set();
-        const uniqueResults = results.filter(item => {
-            if (seenNames.has(item.originalName)) {
-                return false;
-            }
-            seenNames.add(item.originalName);
-            return true;
-        });
-        
-        let html = '';
-        uniqueResults.forEach(item => {
-            html += `
-                <div class="unmatched-item-compact">
-                    <span class="unmatched-name-compact">${item.originalName}</span>
-                </div>
-            `;
-        });
-        unmatchedList.innerHTML = html;
+        // 未使用此函数了
+    },
+    
+    // 显示匹配皮肤（紧凑版）
+    displayMatchedCompact: function(results) {
+        // 未使用此函数了
+    },
+    
+    // 显示汇总信息（紧凑版）
+    displaySummaryCompact: function(results) {
+        const summaryContent = document.getElementById('summaryContentCompact');
+        summaryContent.innerHTML = `
+            <strong>处理完成！</strong><br>
+            共处理 ${results.summary.totalProcessed} 个皮肤<br>
+            匹配成功: ${results.summary.totalMatched} 个 (${results.summary.matchRate}%)<br>
+            未匹配: ${results.summary.totalUnmatched} 个<br>
+        `;
     },
     
     // 填充筛选选项
@@ -524,22 +542,6 @@ const UserInventoryEnhanced = {
         container.innerHTML = html;
     },
 
-    // 显示汇总信息
-    showSummary: function(results) {
-        const summary = document.createElement('div');
-        summary.className = 'import-summary';
-        summary.innerHTML = `
-            <strong>处理完成！</strong><br>
-            共处理 ${results.summary.totalProcessed} 个皮肤<br>
-            匹配成功: ${results.summary.totalMatched} 个 (${results.summary.matchRate}%)<br>
-            未匹配: ${results.summary.totalUnmatched} 个<br>
-            数据已保存到 user_temporary_inventory.js
-        `;
-        
-        const importResults = document.getElementById('importResults');
-        importResults.appendChild(summary);
-    },
-
     // 导出处理后的数据为JSON文件
     exportData: function() {
         const data = this.getProcessedData();
@@ -561,6 +563,199 @@ const UserInventoryEnhanced = {
         URL.revokeObjectURL(url);
         
         console.log('✅ 数据已导出！');
+    },
+
+    // 在casesData中查找目标皮肤
+    findTargetSkin: function(skinName) {
+        const normalizedName = this.normalizeSkinName(skinName);
+        for (const crate of casesData) {
+            for (const level of crate.levels) {
+                for (const skin of level.skins) {
+                    const normalizedSkin = this.normalizeSkinName(skin.name);
+                    if (normalizedName === normalizedSkin) {
+                        return {
+                            name: skin.name,
+                            grade: level.name,
+                            minWear: skin.minWear,
+                            maxWear: skin.maxWear,
+                            crate: crate.name
+                        };
+                    }
+                }
+            }
+        }
+        return null;
+    },
+
+    // 获取下一级皮肤级别
+    getLowerGrade: function(grade) {
+        const index = this.gradeOrder.indexOf(grade);
+        if (index <= 0) return null;
+        return this.gradeOrder[index - 1];
+    },
+
+    // 计算转换磨损值
+    calculateConvertedWear: function(wear, minWear, maxWear) {
+        const range = maxWear - minWear;
+        if (range <= 0) return 0;
+        let converted = (wear - minWear) / range;
+        return Math.max(0, Math.min(1, converted));
+    },
+
+    // 计算上级皮肤磨损值
+    calculateUpperWear: function(convertedSum, upperMinWear, upperMaxWear) {
+        const avgConverted = convertedSum / 10;
+        return avgConverted * (upperMaxWear - upperMinWear) + upperMinWear;
+    },
+
+    // 贪心优化：尝试替换皮肤使总和最大且不超过目标
+    greedyOptimize: function(initialGroup, allSkins, targetConvertedSum) {
+        let bestGroup = [...initialGroup];
+        let bestSum = initialGroup.reduce((sum, s) => sum + parseFloat(s.convertedWear), 0);
+        
+        const availableSkins = allSkins.filter(s => !initialGroup.includes(s));
+        
+        let improved = true;
+        let iterations = 0;
+        const maxIterations = 100;
+        
+        while (improved && iterations < maxIterations) {
+            improved = false;
+            iterations++;
+            
+            for (let i = 0; i < bestGroup.length; i++) {
+                for (const replacementSkin of availableSkins) {
+                    if (bestGroup.includes(replacementSkin)) continue;
+                    
+                    const testGroup = [...bestGroup];
+                    testGroup[i] = replacementSkin;
+                    const testSum = testGroup.reduce((sum, s) => sum + parseFloat(s.convertedWear), 0);
+                    
+                    if (testSum <= targetConvertedSum && testSum > bestSum) {
+                        bestGroup = testGroup;
+                        bestSum = testSum;
+                        improved = true;
+                    }
+                }
+            }
+        }
+        
+        return { group: bestGroup, sum: bestSum };
+    },
+
+    // 执行一键汰换
+    executeTradeup: function() {
+        const resultDiv = document.getElementById('tradeupResult');
+        resultDiv.className = 'tradeup-result';
+        resultDiv.innerHTML = '';
+        
+        const targetSkinName = document.getElementById('targetSkinName').value.trim();
+        const targetWearValue = parseFloat(document.getElementById('targetWearValue').value.trim());
+        
+        if (!targetSkinName) {
+            resultDiv.className = 'tradeup-result error';
+            resultDiv.innerHTML = '❌ 请输入目标产物名字';
+            return;
+        }
+        
+        if (isNaN(targetWearValue)) {
+            resultDiv.className = 'tradeup-result error';
+            resultDiv.innerHTML = '❌ 请输入有效的目标产物磨损值';
+            return;
+        }
+        
+        const matchedSkins = this.getMatchedSkins();
+        if (!matchedSkins || matchedSkins.length === 0) {
+            resultDiv.className = 'tradeup-result error';
+            resultDiv.innerHTML = '❌ 请先处理皮肤数据';
+            return;
+        }
+        
+        const targetSkin = this.findTargetSkin(targetSkinName);
+        if (!targetSkin) {
+            resultDiv.className = 'tradeup-result error';
+            resultDiv.innerHTML = '❌ 未找到目标产物: ' + targetSkinName;
+            return;
+        }
+        
+        const lowerGrade = this.getLowerGrade(targetSkin.grade);
+        if (!lowerGrade) {
+            resultDiv.className = 'tradeup-result error';
+            resultDiv.innerHTML = '❌ 该目标产物没有下级皮肤';
+            return;
+        }
+        
+        if (targetWearValue < targetSkin.minWear || targetWearValue > targetSkin.maxWear) {
+            resultDiv.className = 'tradeup-result error';
+            resultDiv.innerHTML = `❌ 目标产物磨损值超出范围 (${targetSkin.minWear} - ${targetSkin.maxWear})`;
+            return;
+        }
+        
+        const targetConvertedSum = this.calculateConvertedWear(targetWearValue, targetSkin.minWear, targetSkin.maxWear) * 10;
+        
+        const candidateSkins = matchedSkins.filter(skin => {
+            return skin.grade === lowerGrade && skin.crate === targetSkin.crate;
+        });
+        
+        if (candidateSkins.length < 10) {
+            resultDiv.className = 'tradeup-result error';
+            resultDiv.innerHTML = `❌ 库存中下级皮肤数量不足 (需要10个, 当前${candidateSkins.length}个)`;
+            return;
+        }
+        
+        candidateSkins.forEach(skin => {
+            skin.convertedWear = this.calculateConvertedWear(skin.wear, skin.minWear, skin.maxWear);
+        });
+        
+        candidateSkins.sort((a, b) => parseFloat(a.convertedWear) - parseFloat(b.convertedWear));
+        
+        let bestResult = null;
+        let bestSum = -1;
+        
+        for (let i = 0; i <= candidateSkins.length - 10; i++) {
+            const initialGroup = candidateSkins.slice(i, i + 10);
+            const optimized = this.greedyOptimize(initialGroup, candidateSkins, targetConvertedSum);
+            
+            if (optimized.sum > bestSum && optimized.sum <= targetConvertedSum) {
+                bestSum = optimized.sum;
+                bestResult = optimized;
+            }
+        }
+        
+        if (!bestResult) {
+            resultDiv.className = 'tradeup-result error';
+            resultDiv.innerHTML = '❌ 无法找到符合条件的皮肤组合';
+            return;
+        }
+        
+        const resultingWear = this.calculateUpperWear(bestResult.sum, targetSkin.minWear, targetSkin.maxWear);
+        
+        if (resultingWear > targetWearValue) {
+            resultDiv.className = 'tradeup-result error';
+            resultDiv.innerHTML = `❌ 汰换结果超出目标磨损值 (目标: ${targetWearValue.toFixed(6)}, 结果: ${resultingWear.toFixed(6)})`;
+            return;
+        }
+        
+        let skinListHtml = '<div class="tradeup-skin-list">';
+        bestResult.group.forEach(skin => {
+            skinListHtml += `
+                <div class="tradeup-skin-item">
+                    <div class="tradeup-skin-name">${skin.skin}</div>
+                    <div class="tradeup-skin-wear">磨损: ${skin.wear} (转换: ${parseFloat(skin.convertedWear).toFixed(6)})</div>
+                </div>
+            `;
+        });
+        skinListHtml += '</div>';
+        
+        resultDiv.className = 'tradeup-result success';
+        resultDiv.innerHTML = `
+            <div style="font-weight: 700; margin-bottom: 8px;">✅ 找到最佳组合！</div>
+            <div>目标产物: ${targetSkin.name}</div>
+            <div>目标磨损: ${targetWearValue.toFixed(6)}</div>
+            <div>结果磨损: ${resultingWear.toFixed(6)}</div>
+            <div>转换磨损总和: ${bestResult.sum.toFixed(6)} / ${targetConvertedSum.toFixed(6)}</div>
+            ${skinListHtml}
+        `;
     }
 };
 
@@ -577,6 +772,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (exportBtn) {
         exportBtn.addEventListener('click', function() {
             UserInventoryEnhanced.exportData();
+        });
+    }
+    
+    const tradeupBtn = document.getElementById('tradeupBtn');
+    if (tradeupBtn) {
+        tradeupBtn.addEventListener('click', function() {
+            UserInventoryEnhanced.executeTradeup();
         });
     }
 });

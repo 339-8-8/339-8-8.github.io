@@ -89,16 +89,16 @@
                             </div>
                         </div>
                         <div class="paste-right">
-                            <div class="unmatched-section-compact" id="unmatchedSectionCompact">
-                                <div class="unmatched-title-compact">❌ 未匹配</div>
-                                <div class="unmatched-list-compact" id="unmatchedListCompact">
-                                    <div class="no-data-compact">暂无未匹配数据</div>
+                            <div class="summary-section-compact" id="summarySectionCompact">
+                                <div class="summary-title-compact">📊 处理结果</div>
+                                <div class="summary-content-compact" id="summaryContentCompact">
+                                    请先处理皮肤数据
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="section-title matched-title">✅ 匹配结果</div>
+                    <div class="section-title matched-title">📦 皮肤库存</div>
                     
                     <!-- 筛选区域 -->
                     <div class="filter-section" id="filterSection" style="display: none;">
@@ -126,6 +126,23 @@
                     
                     <div class="import-results" id="importResults">
                         <div class="no-data">请先处理皮肤数据</div>
+                    </div>
+                    
+                    <!-- 一键汰换区域 -->
+                    <div class="tradeup-section" id="tradeupSection" style="display: none;">
+                        <div class="section-title tradeup-title">🔄 一键汰换</div>
+                        <div class="tradeup-inputs">
+                            <div class="tradeup-input-group">
+                                <label class="tradeup-label">目标产物名字</label>
+                                <input type="text" class="tradeup-input" id="targetSkinName" placeholder="输入目标产物名字">
+                            </div>
+                            <div class="tradeup-input-group">
+                                <label class="tradeup-label">目标产物磨损值</label>
+                                <input type="text" class="tradeup-input" id="targetWearValue" placeholder="输入目标产物磨损值">
+                            </div>
+                        </div>
+                        <button class="tradeup-btn" id="tradeupBtn">执行汰换计算</button>
+                        <div class="tradeup-result" id="tradeupResult"></div>
                     </div>
                 </div>
             </div>
