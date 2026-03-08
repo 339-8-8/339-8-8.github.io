@@ -115,6 +115,11 @@
                         <span class="inventory-count" id="inventoryCount">0</span>
                     </div>
                     
+                    <!-- 测试按钮 -->
+                    <div class="test-button-container" style="padding: 0 16px 16px;">
+                        <button class="test-button" id="testPopupBtn">🧪 测试弹出窗口</button>
+                    </div>
+                    
                     <!-- 筛选区域 -->
                     <div class="filter-section" id="filterSection" style="display: none;">
                         <div class="filter-row">
@@ -163,6 +168,7 @@
                         <div class="tradeup-buttons">
                             <button class="tradeup-btn" id="tradeupBtn">执行汰换计算</button>
                             <button class="tradeup-btn tradeup-btn-confirm" id="tradeupConfirmBtn" style="display: none;">确认并清空</button>
+                            <button class="tradeup-btn tradeup-btn-popup" id="tradeupPopupBtn">🖼️ 显示皮肤</button>
                         </div>
                         <div class="tradeup-result" id="tradeupResult"></div>
                     </div>
@@ -175,9 +181,9 @@
     <script src="js/data.js"></script>
     <script src="js/index.js"></script>
     <script src="js/user_inventory_enhanced.js"></script>
-    <script>
+    <!-- <script>
         (new Image()).src = "https://visitor-badge.laobi.icu/badge?page_id=339-8-8.github.io";
-    </script>
+    </script> -->
     
     <!-- 帮助模态框 -->
     <div class="help-modal" id="helpModal">
@@ -212,6 +218,28 @@
                 </div>
             </div>
             
+        </div>
+    </div>
+    
+    <!-- 汰换皮肤弹出窗口 -->
+    <div class="tradeup-popup" id="tradeupPopup">
+        <div class="tradeup-popup-content">
+            <div class="tradeup-popup-header">
+                <div class="tradeup-popup-title">汰换皮肤列表</div>
+                <button class="tradeup-popup-close" id="tradeupPopupClose">&times;</button>
+            </div>
+            <div class="tradeup-popup-body">
+                <div class="tradeup-popup-left">
+                    <div class="tradeup-popup-info">
+                        <div class="tradeup-popup-info-title">汰换信息</div>
+                        <div class="tradeup-popup-info-content" id="tradeupPopupInfo"></div>
+                    </div>
+                </div>
+                <div class="tradeup-popup-right">
+                    <div class="tradeup-popup-skins-title">十个汰换皮肤</div>
+                    <div class="tradeup-popup-skins" id="tradeupPopupSkins"></div>
+                </div>
+            </div>
         </div>
     </div>
 </body>

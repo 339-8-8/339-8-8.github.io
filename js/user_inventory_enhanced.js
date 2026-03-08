@@ -821,7 +821,7 @@ const UserInventoryEnhanced = {
             resultDiv.classList.add('show');
         }, 10);
         
-        // 保存当前结果并显示确认按钮
+        // 保存当前结果
         this.currentTradeupResult = {
             skins: bestResult.group,
             targetSkin: targetSkin,
@@ -829,10 +829,107 @@ const UserInventoryEnhanced = {
             resultingWear: resultingWear
         };
         
+        // 显示确认按钮
         const confirmBtn = document.getElementById('tradeupConfirmBtn');
         if (confirmBtn) {
             confirmBtn.style.display = 'block';
         }
+    },
+    
+    // 显示弹出窗口
+    showTradeupPopup: function() {
+        const popup = document.getElementById('tradeupPopup');
+        const popupInfo = document.getElementById('tradeupPopupInfo');
+        const popupSkins = document.getElementById('tradeupPopupSkins');
+        
+        if (this.currentTradeupResult) {
+            // 显示汰换信息
+            popupInfo.innerHTML = `
+                <div><strong>目标产物：</strong>${this.currentTradeupResult.targetSkin}</div>
+                <div><strong>目标磨损：</strong>${this.currentTradeupResult.targetWear}</div>
+                <div><strong>实际产出：</strong>${this.currentTradeupResult.resultingWear}</div>
+            `;
+            
+            // 生成皮肤列表
+            let skinsHtml = '';
+            this.currentTradeupResult.skins.forEach((skin, index) => {
+                skinsHtml += `
+                    <div class="tradeup-popup-skin-item">
+                        <div class="tradeup-popup-skin-main">
+                            <div class="tradeup-popup-skin-name">${skin.skin}</div>
+                            <div class="tradeup-popup-skin-details">
+                                <div class="tradeup-popup-skin-crate">${skin.crate}</div>
+                                <div class="tradeup-popup-skin-grade">${skin.grade}</div>
+                            </div>
+                        </div>
+                        <div class="tradeup-popup-skin-wear">${skin.wear}</div>
+                    </div>
+                `;
+            });
+            
+            popupSkins.innerHTML = skinsHtml;
+        } else {
+            // 显示测试数据
+            popupInfo.innerHTML = `
+                <div><strong>测试模式</strong></div>
+                <div>用于测试窗口尺寸</div>
+            `;
+            
+            let skinsHtml = '';
+            const testSkins = [
+                { skin: '测试皮肤1', crate: '测试武器箱', grade: 'Mil-Spec', wear: '0.01234' },
+                { skin: '测试皮肤2', crate: '测试收藏品', grade: 'Restricted', wear: '0.05678' },
+                { skin: '测试皮肤3', crate: '测试武器箱', grade: 'Classified', wear: '0.09876' },
+                { skin: '测试皮肤4', crate: '测试收藏品', grade: 'Mil-Spec', wear: '0.04321' },
+                { skin: '测试皮肤5', crate: '测试武器箱', grade: 'Restricted', wear: '0.08765' },
+                { skin: '测试皮肤6', crate: '测试收藏品', grade: 'Classified', wear: '0.02468' },
+                { skin: '测试皮肤7', crate: '测试武器箱', grade: 'Mil-Spec', wear: '0.06802' },
+                { skin: '测试皮肤8', crate: '测试收藏品', grade: 'Restricted', wear: '0.01357' },
+                { skin: '测试皮肤9', crate: '测试武器箱', grade: 'Classified', wear: '0.05791' },
+                { skin: '测试皮肤10', crate: '测试收藏品', grade: 'Mil-Spec', wear: '0.09135' },
+            ];
+            
+            testSkins.forEach((skin, index) => {
+                skinsHtml += `
+                    <div class="tradeup-popup-skin-item">
+                        <div class="tradeup-popup-skin-main">
+                            <div class="tradeup-popup-skin-name">${skin.skin}</div>
+                            <div class="tradeup-popup-skin-details">
+                                <div class="tradeup-popup-skin-crate">${skin.crate}</div>
+                                <div class="tradeup-popup-skin-grade">${skin.grade}</div>
+                            </div>
+                        </div>
+                        <div class="tradeup-popup-skin-wear">${skin.wear}</div>
+                    </div>
+                `;
+            });
+            
+            popupSkins.innerHTML = skinsHtml;
+        }
+        
+        // 显示弹出窗口
+        popup.classList.add('show');
+        
+        // 根据浏览器缩放比例调整窗口尺寸，确保显示为 1920x1080 物理像素
+        const scale = window.devicePixelRatio || 1;
+        const adjustedWidth = 1920 / scale;
+        const adjustedHeight = 1080 / scale;
+        
+        const popupContent = document.querySelector('.tradeup-popup-content');
+        if (popupContent) {
+            popupContent.style.width = adjustedWidth + 'px';
+            popupContent.style.height = adjustedHeight + 'px';
+            popupContent.style.minWidth = adjustedWidth + 'px';
+            popupContent.style.minHeight = adjustedHeight + 'px';
+            popupContent.style.maxWidth = adjustedWidth + 'px';
+            popupContent.style.maxHeight = adjustedHeight + 'px';
+        }
+    },
+    
+    // 隐藏弹出窗口
+    hideTradeupPopup: function() {
+        const popup = document.getElementById('tradeupPopup');
+        popup.classList.remove('show');
     },
 
     // 确认并清空
@@ -972,6 +1069,37 @@ document.addEventListener('DOMContentLoaded', function() {
     if (tradeupFetchBtn) {
         tradeupFetchBtn.addEventListener('click', function() {
             UserInventoryEnhanced.fetchFromLeft();
+        });
+    }
+    
+    const tradeupPopupBtn = document.getElementById('tradeupPopupBtn');
+    if (tradeupPopupBtn) {
+        tradeupPopupBtn.addEventListener('click', function() {
+            UserInventoryEnhanced.showTradeupPopup();
+        });
+    }
+    
+    const testPopupBtn = document.getElementById('testPopupBtn');
+    if (testPopupBtn) {
+        testPopupBtn.addEventListener('click', function() {
+            UserInventoryEnhanced.showTradeupPopup();
+        });
+    }
+    
+    const tradeupPopupClose = document.getElementById('tradeupPopupClose');
+    const tradeupPopup = document.getElementById('tradeupPopup');
+    
+    if (tradeupPopupClose && tradeupPopup) {
+        tradeupPopupClose.addEventListener('click', function() {
+            UserInventoryEnhanced.hideTradeupPopup();
+        });
+    }
+    
+    if (tradeupPopup) {
+        tradeupPopup.addEventListener('click', function(e) {
+            if (e.target === tradeupPopup) {
+                UserInventoryEnhanced.hideTradeupPopup();
+            }
         });
     }
     
