@@ -23848,23 +23848,5 @@ window.casesData = [
         ]
       }
     ]
-  },
-  {
-    "id": 99,
-    "name": "神秘小镇收藏品",
-    "levels": [
-      {
-        "name": "受限级",
-        "skins": [
-          {
-            "id": 2987,
-            "name": "MP5-SD | 小白鼠",
-            "minWear": 0,
-            "maxWear": 0.35,
-            "image": ""
-          }
-        ]
-      }
-    ]
   }
 ];

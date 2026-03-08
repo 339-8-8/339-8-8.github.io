@@ -678,12 +678,18 @@ const UserInventoryEnhanced = {
         if (!targetSkinName) {
             resultDiv.className = 'tradeup-result error';
             resultDiv.innerHTML = '❌ 请输入目标产物名字';
+            setTimeout(() => {
+                resultDiv.classList.add('show');
+            }, 10);
             return;
         }
         
         if (isNaN(targetWearValue)) {
             resultDiv.className = 'tradeup-result error';
             resultDiv.innerHTML = '❌ 请输入有效的目标产物磨损值';
+            setTimeout(() => {
+                resultDiv.classList.add('show');
+            }, 10);
             return;
         }
         
@@ -691,6 +697,9 @@ const UserInventoryEnhanced = {
         if (!matchedSkins || matchedSkins.length === 0) {
             resultDiv.className = 'tradeup-result error';
             resultDiv.innerHTML = '❌ 请先处理皮肤数据';
+            setTimeout(() => {
+                resultDiv.classList.add('show');
+            }, 10);
             return;
         }
         
@@ -698,6 +707,9 @@ const UserInventoryEnhanced = {
         if (!targetSkin) {
             resultDiv.className = 'tradeup-result error';
             resultDiv.innerHTML = '❌ 未找到目标产物: ' + targetSkinName;
+            setTimeout(() => {
+                resultDiv.classList.add('show');
+            }, 10);
             return;
         }
         
@@ -705,12 +717,18 @@ const UserInventoryEnhanced = {
         if (!lowerGrade) {
             resultDiv.className = 'tradeup-result error';
             resultDiv.innerHTML = '❌ 该目标产物没有下级皮肤';
+            setTimeout(() => {
+                resultDiv.classList.add('show');
+            }, 10);
             return;
         }
         
         if (targetWearValue < targetSkin.minWear || targetWearValue > targetSkin.maxWear) {
             resultDiv.className = 'tradeup-result error';
             resultDiv.innerHTML = `❌ 目标产物磨损值超出范围 (${targetSkin.minWear} - ${targetSkin.maxWear})`;
+            setTimeout(() => {
+                resultDiv.classList.add('show');
+            }, 10);
             return;
         }
         
@@ -723,6 +741,9 @@ const UserInventoryEnhanced = {
         if (candidateSkins.length < 10) {
             resultDiv.className = 'tradeup-result error';
             resultDiv.innerHTML = `❌ 库存中下级皮肤数量不足 (需要10个, 当前${candidateSkins.length}个)`;
+            setTimeout(() => {
+                resultDiv.classList.add('show');
+            }, 10);
             return;
         }
         
@@ -748,6 +769,9 @@ const UserInventoryEnhanced = {
         if (!bestResult) {
             resultDiv.className = 'tradeup-result error';
             resultDiv.innerHTML = '❌ 无法找到符合条件的皮肤组合';
+            setTimeout(() => {
+                resultDiv.classList.add('show');
+            }, 10);
             return;
         }
         
@@ -756,6 +780,9 @@ const UserInventoryEnhanced = {
         if (resultingWear > targetWearValue) {
             resultDiv.className = 'tradeup-result error';
             resultDiv.innerHTML = `❌ 汰换结果超出目标磨损值 (目标: ${targetWearValue.toFixed(6)}, 结果: ${resultingWear.toFixed(6)})`;
+            setTimeout(() => {
+                resultDiv.classList.add('show');
+            }, 10);
             return;
         }
         
@@ -763,9 +790,12 @@ const UserInventoryEnhanced = {
         bestResult.group.forEach(skin => {
             skinListHtml += `
                 <div class="tradeup-skin-item">
-                    <div class="tradeup-skin-info">
+                    <div class="tradeup-skin-main">
                         <div class="tradeup-skin-name">${skin.skin}</div>
-                        <div class="tradeup-skin-details">${skin.crate} · ${skin.grade}</div>
+                        <div class="tradeup-skin-details">
+                            <div class="tradeup-skin-crate">${skin.crate}</div>
+                            <div class="tradeup-skin-grade">${skin.grade}</div>
+                        </div>
                     </div>
                     <div class="tradeup-skin-wear">${skin.wear}</div>
                 </div>
@@ -785,6 +815,11 @@ const UserInventoryEnhanced = {
             </div>
             ${skinListHtml}
         `;
+        
+        // 添加动画效果
+        setTimeout(() => {
+            resultDiv.classList.add('show');
+        }, 10);
         
         // 保存当前结果并显示确认按钮
         this.currentTradeupResult = {
@@ -835,19 +870,23 @@ const UserInventoryEnhanced = {
             this.displaySummaryCompact(this.processedData);
         }
         
-        // 清空结果
+        // 清空结果（添加动画效果）
         const resultDiv = document.getElementById('tradeupResult');
-        resultDiv.className = 'tradeup-result';
-        resultDiv.innerHTML = '';
+        resultDiv.classList.remove('show');
         
-        // 隐藏确认按钮
-        const confirmBtn = document.getElementById('tradeupConfirmBtn');
-        if (confirmBtn) {
-            confirmBtn.style.display = 'none';
-        }
-        
-        // 清空当前结果
-        this.currentTradeupResult = null;
+        setTimeout(() => {
+            resultDiv.className = 'tradeup-result';
+            resultDiv.innerHTML = '';
+            
+            // 隐藏确认按钮
+            const confirmBtn = document.getElementById('tradeupConfirmBtn');
+            if (confirmBtn) {
+                confirmBtn.style.display = 'none';
+            }
+            
+            // 清空当前结果
+            this.currentTradeupResult = null;
+        }, 300);
     },
 
     // 从左侧获取目标产物数据
@@ -860,18 +899,27 @@ const UserInventoryEnhanced = {
         if (typeof state === 'undefined') {
             resultDiv.className = 'tradeup-result error';
             resultDiv.innerHTML = '❌ 无法获取左侧数据';
+            setTimeout(() => {
+                resultDiv.classList.add('show');
+            }, 10);
             return;
         }
         
         if (!state.selectedSkin) {
             resultDiv.className = 'tradeup-result error';
             resultDiv.innerHTML = '❌ 请先在左侧选择一个皮肤';
+            setTimeout(() => {
+                resultDiv.classList.add('show');
+            }, 10);
             return;
         }
         
         if (typeof state.wearValue === 'undefined' || state.wearValue === null) {
             resultDiv.className = 'tradeup-result error';
             resultDiv.innerHTML = '❌ 请先在左侧输入磨损值';
+            setTimeout(() => {
+                resultDiv.classList.add('show');
+            }, 10);
             return;
         }
         
@@ -889,6 +937,11 @@ const UserInventoryEnhanced = {
             <div>目标产物: ${state.selectedSkin.name}</div>
             <div>目标磨损: ${state.wearValue.toFixed(6)}</div>
         `;
+        
+        // 添加动画效果
+        setTimeout(() => {
+            resultDiv.classList.add('show');
+        }, 10);
     }
 };
 
