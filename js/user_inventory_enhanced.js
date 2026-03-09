@@ -172,6 +172,37 @@ const UserInventoryEnhanced = {
             }
         };
         
+        // 清空并重新初始化原始数据存储
+        window.originalSkinsData = {
+            processedAt: new Date().toISOString(),
+            skins: [],
+            summary: {
+                totalProcessed: processedSkins.length
+            }
+        };
+        
+        // 清空并重新初始化数据存储
+        window.processedSkinsData = {
+            processedAt: new Date().toISOString(),
+            skins: [],
+            summary: {
+                totalProcessed: processedSkins.length,
+                totalMatched: 0,
+                totalUnmatched: 0,
+                matchRate: 0
+            }
+        };
+        
+        // 存储原始皮肤数据
+        for (let i = 0; i < processedSkins.length; i++) {
+            const skin = processedSkins[i];
+            window.originalSkinsData.skins.push({
+                originalName: skin.originalName,
+                processedName: skin.processedName,
+                wear: skin.wear
+            });
+        }
+        
         for (const skin of processedSkins) {
             const matchResult = this.findMatchingSkin(skin.processedName, casesData);
             
@@ -181,11 +212,11 @@ const UserInventoryEnhanced = {
                 const wearRange = matchResult.maxWear - matchResult.minWear;
                 if (wearRange > 0) {
                     convertedWear = (skin.wear - matchResult.minWear) / wearRange;
-                    // 确保在0-1范围内
+                    // 确保在 0-1 范围内
                     convertedWear = Math.max(0, Math.min(1, convertedWear));
                 }
                 
-                results.matched.push({
+                const matchedSkin = {
                     originalName: skin.originalName,
                     processedName: skin.processedName,
                     wear: skin.wear,
@@ -196,26 +227,34 @@ const UserInventoryEnhanced = {
                     grade: matchResult.grade,
                     skin: matchResult.skin,
                     matchType: matchResult.matchType
-                });
+                };
+                
+                results.matched.push(matchedSkin);
+                window.processedSkinsData.skins.push(matchedSkin);
             } else {
-                results.unmatched.push({
+                const unmatchedSkin = {
                     originalName: skin.originalName,
                     processedName: skin.processedName,
                     wear: skin.wear,
                     matchType: matchResult.matchType
-                });
+                };
+                
+                results.unmatched.push(unmatchedSkin);
+                window.processedSkinsData.skins.push(unmatchedSkin);
             }
         }
-        
-        // 按磨损值从低到高排序
-        results.matched.sort((a, b) => a.wear - b.wear);
-        results.unmatched.sort((a, b) => a.wear - b.wear);
         
         // 更新汇总信息
         results.summary.totalMatched = results.matched.length;
         results.summary.totalUnmatched = results.unmatched.length;
         results.summary.matchRate = results.summary.totalProcessed > 0 ? 
             (results.summary.totalMatched / results.summary.totalProcessed * 100).toFixed(2) : 0;
+        
+        window.processedSkinsData.summary = {...results.summary};
+        
+        // 按磨损值从低到高排序
+        results.matched.sort((a, b) => a.wear - b.wear);
+        results.unmatched.sort((a, b) => a.wear - b.wear);
         
         return results;
     },
@@ -749,13 +788,25 @@ const UserInventoryEnhanced = {
         
         candidateSkins.forEach(skin => {
             skin.convertedWear = this.calculateConvertedWear(skin.wear, skin.minWear, skin.maxWear);
+            
+            // 计算皮肤在原始数据中的位置顺序
+            if (window.originalSkinsData && window.originalSkinsData.skins) {
+                const originalIndex = window.originalSkinsData.skins.findIndex(s => 
+                    s.originalName === skin.originalName && s.wear === skin.wear
+                );
+                skin.originalPosition = originalIndex !== -1 ? originalIndex + 1 : 0;
+            } else {
+                skin.originalPosition = 0;
+            }
         });
         
-        candidateSkins.sort((a, b) => parseFloat(a.convertedWear) - parseFloat(b.convertedWear));
+        // 按照原始数据位置顺序排序（位置越大，序号越小）
+        candidateSkins.sort((a, b) => b.originalPosition - a.originalPosition);
         
         let bestResult = null;
         let bestSum = -1;
         
+        // 遍历所有可能的10个皮肤组合
         for (let i = 0; i <= candidateSkins.length - 10; i++) {
             const initialGroup = candidateSkins.slice(i, i + 10);
             const optimized = this.greedyOptimize(initialGroup, candidateSkins, targetConvertedSum);
@@ -786,15 +837,22 @@ const UserInventoryEnhanced = {
             return;
         }
         
+        // 在显示结果前，按照原始位置从大到小排序
+        bestResult.group.sort((a, b) => b.originalPosition - a.originalPosition);
+        
         let skinListHtml = '<div class="tradeup-skin-list">';
-        bestResult.group.forEach(skin => {
+        bestResult.group.forEach((skin, index) => {
             skinListHtml += `
                 <div class="tradeup-skin-item">
                     <div class="tradeup-skin-main">
-                        <div class="tradeup-skin-name">${skin.skin}</div>
+                        <div class="tradeup-skin-name">
+                            <span class="tradeup-order">#${index + 1}</span>
+                            ${skin.skin}
+                        </div>
                         <div class="tradeup-skin-details">
                             <div class="tradeup-skin-crate">${skin.crate}</div>
                             <div class="tradeup-skin-grade">${skin.grade}</div>
+                            <div class="tradeup-skin-order-info">原始位置：${skin.originalPosition}</div>
                         </div>
                     </div>
                     <div class="tradeup-skin-wear">${skin.wear}</div>
@@ -821,7 +879,7 @@ const UserInventoryEnhanced = {
             resultDiv.classList.add('show');
         }, 10);
         
-        // 保存当前结果
+        // 保存当前结果并显示确认按钮
         this.currentTradeupResult = {
             skins: bestResult.group,
             targetSkin: targetSkin,
@@ -829,107 +887,199 @@ const UserInventoryEnhanced = {
             resultingWear: resultingWear
         };
         
-        // 显示确认按钮
         const confirmBtn = document.getElementById('tradeupConfirmBtn');
         if (confirmBtn) {
             confirmBtn.style.display = 'block';
+        }
+        
+        const popupBtn = document.getElementById('tradeupPopupBtn');
+        if (popupBtn) {
+            popupBtn.style.display = 'block';
         }
     },
     
     // 显示弹出窗口
     showTradeupPopup: function() {
         const popup = document.getElementById('tradeupPopup');
-        const popupInfo = document.getElementById('tradeupPopupInfo');
-        const popupSkins = document.getElementById('tradeupPopupSkins');
+        const skinsContainer = document.getElementById('tradeupPopupSkins');
+        const popupContent = document.querySelector('.tradeup-popup-content');
+        const popupHeader = document.querySelector('.tradeup-popup-header');
+        const popupBody = document.querySelector('.tradeup-popup-body');
+        const popupLeft = document.querySelector('.tradeup-popup-left');
         
-        if (this.currentTradeupResult) {
-            // 显示汰换信息
-            popupInfo.innerHTML = `
-                <div><strong>目标产物：</strong>${this.currentTradeupResult.targetSkin}</div>
-                <div><strong>目标磨损：</strong>${this.currentTradeupResult.targetWear}</div>
-                <div><strong>实际产出：</strong>${this.currentTradeupResult.resultingWear}</div>
-            `;
-            
-            // 生成皮肤列表
-            let skinsHtml = '';
-            this.currentTradeupResult.skins.forEach((skin, index) => {
-                skinsHtml += `
-                    <div class="tradeup-popup-skin-item">
-                        <div class="tradeup-popup-skin-main">
-                            <div class="tradeup-popup-skin-name">${skin.skin}</div>
-                            <div class="tradeup-popup-skin-details">
-                                <div class="tradeup-popup-skin-crate">${skin.crate}</div>
-                                <div class="tradeup-popup-skin-grade">${skin.grade}</div>
-                            </div>
-                        </div>
-                        <div class="tradeup-popup-skin-wear">${skin.wear}</div>
-                    </div>
-                `;
-            });
-            
-            popupSkins.innerHTML = skinsHtml;
-        } else {
-            // 显示测试数据
-            popupInfo.innerHTML = `
-                <div><strong>测试模式</strong></div>
-                <div>用于测试窗口尺寸</div>
-            `;
-            
-            let skinsHtml = '';
-            const testSkins = [
-                { skin: '测试皮肤1', crate: '测试武器箱', grade: 'Mil-Spec', wear: '0.01234' },
-                { skin: '测试皮肤2', crate: '测试收藏品', grade: 'Restricted', wear: '0.05678' },
-                { skin: '测试皮肤3', crate: '测试武器箱', grade: 'Classified', wear: '0.09876' },
-                { skin: '测试皮肤4', crate: '测试收藏品', grade: 'Mil-Spec', wear: '0.04321' },
-                { skin: '测试皮肤5', crate: '测试武器箱', grade: 'Restricted', wear: '0.08765' },
-                { skin: '测试皮肤6', crate: '测试收藏品', grade: 'Classified', wear: '0.02468' },
-                { skin: '测试皮肤7', crate: '测试武器箱', grade: 'Mil-Spec', wear: '0.06802' },
-                { skin: '测试皮肤8', crate: '测试收藏品', grade: 'Restricted', wear: '0.01357' },
-                { skin: '测试皮肤9', crate: '测试武器箱', grade: 'Classified', wear: '0.05791' },
-                { skin: '测试皮肤10', crate: '测试收藏品', grade: 'Mil-Spec', wear: '0.09135' },
-            ];
-            
-            testSkins.forEach((skin, index) => {
-                skinsHtml += `
-                    <div class="tradeup-popup-skin-item">
-                        <div class="tradeup-popup-skin-main">
-                            <div class="tradeup-popup-skin-name">${skin.skin}</div>
-                            <div class="tradeup-popup-skin-details">
-                                <div class="tradeup-popup-skin-crate">${skin.crate}</div>
-                                <div class="tradeup-popup-skin-grade">${skin.grade}</div>
-                            </div>
-                        </div>
-                        <div class="tradeup-popup-skin-wear">${skin.wear}</div>
-                    </div>
-                `;
-            });
-            
-            popupSkins.innerHTML = skinsHtml;
-        }
-        
-        // 显示弹出窗口
-        popup.classList.add('show');
-        
-        // 根据浏览器缩放比例调整窗口尺寸，确保显示为 1920x1080 物理像素
+        // 根据浏览器缩放比例调整尺寸，确保显示为 1920x1080 物理像素
         const scale = window.devicePixelRatio || 1;
         const adjustedWidth = 1920 / scale;
         const adjustedHeight = 1080 / scale;
+        const adjustedHeaderHeight = 246 / scale;
+        const adjustedBodyHeight = 834 / scale;
+        const adjustedLeftWidth = 795 / scale;
+        // 调整左侧高度以显示滚动效果
+        const adjustedLeftHeight = 740 / scale;
+        const adjustedPaddingLeft = 57 / scale;
+        const adjustedSkinWidth = 165 / scale;
+        const adjustedSkinHeight = 193 / scale;
+        const adjustedSkinMarginTop = 7 / scale;
+        const adjustedSkinMarginRight = 28 / scale;
+        const adjustedSkinPadding = 12 / scale;
+        // 皮肤容器宽度：4个皮肤 + 3个右边距 + 更多余量
+        const adjustedSkinsContainerWidth = (4 * adjustedSkinWidth + 3 * adjustedSkinMarginRight + 50);
         
-        const popupContent = document.querySelector('.tradeup-popup-content');
+        console.log('浏览器缩放比例:', scale, '窗口 CSS 尺寸:', adjustedWidth + '×' + adjustedHeight);
+        
         if (popupContent) {
             popupContent.style.width = adjustedWidth + 'px';
             popupContent.style.height = adjustedHeight + 'px';
-            popupContent.style.minWidth = adjustedWidth + 'px';
-            popupContent.style.minHeight = adjustedHeight + 'px';
-            popupContent.style.maxWidth = adjustedWidth + 'px';
-            popupContent.style.maxHeight = adjustedHeight + 'px';
         }
+        
+        if (popupHeader) {
+            popupHeader.style.height = adjustedHeaderHeight + 'px';
+            popupHeader.style.width = adjustedWidth + 'px';
+        }
+        
+        if (popupBody) {
+            popupBody.style.height = adjustedBodyHeight + 'px';
+            popupBody.style.width = adjustedWidth + 'px';
+            popupBody.style.paddingLeft = adjustedPaddingLeft + 'px';
+        }
+        
+        if (popupLeft) {
+            popupLeft.style.width = adjustedLeftWidth + 'px';
+            popupLeft.style.height = adjustedLeftHeight + 'px';
+        }
+        
+        if (skinsContainer) {
+            skinsContainer.style.padding = `${adjustedSkinMarginTop}px ${adjustedSkinMarginRight}px 0 0`;
+            skinsContainer.style.width = adjustedSkinsContainerWidth + 'px';
+        }
+        
+        let skinsHtml = '';
+        
+        if (this.currentTradeupResult) {
+            // 显示汰换结果
+            this.currentTradeupResult.skins.forEach((skin, index) => {
+                skinsHtml += this.createSkinCard(skin);
+            });
+        } else {
+            // 显示测试数据 - 76 个皮肤
+            const baseSkins = [
+                { skin: 'AK-47 | 火神', crate: '命悬一线武器箱', grade: '保密', wear: '0.01234' },
+                { skin: 'AWP | 巨龙传说', crate: '猎杀者武器箱', grade: '隐秘', wear: '0.05678' },
+                { skin: 'M4A4 | 如何制作', crate: '布拉沃武器箱', grade: '保密', wear: '0.09876' },
+                { skin: 'Karambit | 渐变之色', crate: '武器箱', grade: '★隐秘', wear: '0.04321' },
+                { skin: 'USP-S | Printstream', crate: '裂空武器箱', grade: '保密', wear: '0.08765' },
+                { skin: 'Glock-18 | 水灵', crate: '突围大行动', grade: '保密', wear: '0.02468' },
+                { skin: 'M9 Bayonet | 多普勒', crate: '武器箱', grade: '★隐秘', wear: '0.06802' },
+                { skin: 'Desert Eagle | 印花集', crate: '梦魇武器箱', grade: '受限', wear: '0.01357' },
+                { skin: 'P90 | 翡翠之龙', crate: '2021 年尘埃 2 收藏包', grade: '保密', wear: '0.05791' },
+                { skin: '蝴蝶刀 | 渐变之色', crate: '武器箱', grade: '★隐秘', wear: '0.09135' },
+                { skin: 'AK-47 | 二西莫夫', crate: '先锋大行动', grade: '保密', wear: '0.15234' },
+                { skin: 'AWP | 二西莫夫', crate: '突破大行动', grade: '保密', wear: '0.18765' },
+                { skin: 'M4A1-S | 玩家二号', crate: '2018 年伦敦 Major', grade: '保密', wear: '0.07123' },
+                { skin: '蝴蝶刀 | 多普勒', crate: '武器箱', grade: '★隐秘', wear: '0.03456' },
+                { skin: 'AK-47 | 红线', crate: '凤凰大行动', grade: '保密', wear: '0.11234' },
+                { skin: 'AWP | 闪电猎龙', crate: '狂牙大行动', grade: '保密', wear: '0.14567' },
+                { skin: 'M4A4 | 地狱烈焰', crate: '炼狱小镇武器箱', grade: '受限', wear: '0.08234' },
+                { skin: '蝴蝶刀 | 表面淬火', crate: '武器箱', grade: '★隐秘', wear: '0.06789' },
+                { skin: 'AK-47 | 燃料喷射器', crate: '命悬一线武器箱', grade: '保密', wear: '0.13456' },
+                { skin: 'AWP | 暴怒之怒', crate: '2018 年伦敦 Major', grade: '保密', wear: '0.09876' },
+            ];
+            
+            // 扩展到 76 个皮肤
+            const testSkins = [];
+            for (let i = 0; i < 4; i++) {
+                baseSkins.forEach(skin => {
+                    testSkins.push({
+                        skin: skin.skin,
+                        crate: skin.crate,
+                        grade: skin.grade,
+                        wear: (Math.random() * 0.2).toFixed(5)
+                    });
+                });
+            }
+            // 确保正好 76 个
+            testSkins.length = 76;
+            
+            testSkins.forEach((skin, index) => {
+                skinsHtml += this.createSkinCard(skin);
+            });
+        }
+        
+        skinsContainer.innerHTML = skinsHtml;
+        
+        // 调整皮肤卡片尺寸
+        setTimeout(() => {
+            const skinCards = document.querySelectorAll('.tradeup-popup-skin-card');
+            skinCards.forEach(card => {
+                card.style.width = adjustedSkinWidth + 'px';
+                card.style.height = adjustedSkinHeight + 'px';
+                card.style.marginTop = adjustedSkinMarginTop + 'px';
+                card.style.marginRight = adjustedSkinMarginRight + 'px';
+                card.style.padding = adjustedSkinPadding + 'px';
+            });
+        }, 10);
+        
+        popup.classList.add('show');
+    },
+    
+    // 创建皮肤卡片 HTML
+    createSkinCard: function(skin) {
+        return `
+            <div class="tradeup-popup-skin-card">
+                <div class="tradeup-popup-skin-main">
+                    <div class="tradeup-popup-skin-name">${skin.skin}</div>
+                    <div class="tradeup-popup-skin-details">
+                        <div class="tradeup-popup-skin-crate">${skin.crate}</div>
+                        <div class="tradeup-popup-skin-grade">${skin.grade}</div>
+                    </div>
+                </div>
+                <div class="tradeup-popup-skin-wear">磨损：${skin.wear}</div>
+            </div>
+        `;
     },
     
     // 隐藏弹出窗口
     hideTradeupPopup: function() {
         const popup = document.getElementById('tradeupPopup');
         popup.classList.remove('show');
+    },
+    
+    // 隐藏弹出窗口
+    hideTradeupPopup: function() {
+        const popup = document.getElementById('tradeupPopup');
+        popup.classList.remove('show');
+    },
+
+    // 计算考虑删除顺序后的当前顺序号（基于数据文件位置）
+    calculateCurrentOrders: function(selectedSkins) {
+        if (!window.processedSkinsData || !window.processedSkinsData.skins) {
+            return selectedSkins.map(skin => ({
+                ...skin,
+                dataFileOrder: 0,
+                currentOrder: 0
+            }));
+        }
+        
+        // 创建副本
+        const result = selectedSkins.map(skin => ({
+            ...skin,
+            dataFileOrder: skin.dataFileOrder || 0,
+            currentOrder: skin.dataFileOrder || 0
+        }));
+        
+        // 按照数据文件位置排序
+        result.sort((a, b) => a.dataFileOrder - b.dataFileOrder);
+        
+        // 计算当前顺序：所有被选中的皮肤都会被依次删除
+        // 当前顺序 = 数据文件位置 - 前面所有被选中皮肤的数量
+        for (let i = 0; i < result.length; i++) {
+            const currentSkin = result[i];
+            
+            // 前面有多少个皮肤（所有被选中的皮肤都会被删除）
+            currentSkin.currentOrder = currentSkin.dataFileOrder - i;
+        }
+        
+        return result;
     },
 
     // 确认并清空
@@ -979,6 +1129,12 @@ const UserInventoryEnhanced = {
             const confirmBtn = document.getElementById('tradeupConfirmBtn');
             if (confirmBtn) {
                 confirmBtn.style.display = 'none';
+            }
+            
+            // 隐藏弹出窗口按钮
+            const popupBtn = document.getElementById('tradeupPopupBtn');
+            if (popupBtn) {
+                popupBtn.style.display = 'none';
             }
             
             // 清空当前结果

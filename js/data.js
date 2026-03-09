@@ -2219,7 +2219,7 @@ window.casesData = [
           },
           {
             "id": 255,
-            "name": "M4A1消音版 | 玫瑰蜂巢",
+            "name": "M4A1 消音型 | 玫瑰蜂巢",
             "minWear": 0,
             "maxWear": 0.5,
             "image": ""
