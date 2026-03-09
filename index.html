@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CS:GO 反向汰换模拟</title>
-    <link rel="stylesheet" href="css/index.css?v=26.3.8.5">
+    <link rel="stylesheet" href="css/index.css?v=26.3.8.21">
 </head>
 <body>
     <div class="container">
@@ -169,6 +169,7 @@
                             <button class="tradeup-btn" id="tradeupBtn">执行汰换计算</button>
                             <button class="tradeup-btn tradeup-btn-confirm" id="tradeupConfirmBtn" style="display: none;">确认并清空</button>
                             <button class="tradeup-btn tradeup-btn-popup" id="tradeupPopupBtn">🖼️ 显示皮肤</button>
+                            <button class="tradeup-btn tradeup-btn-copy-script" id="tradeupCopyScriptBtn" style="display: none;">📋 复制自动脚本</button>
                         </div>
                         <div class="tradeup-result" id="tradeupResult"></div>
                     </div>
@@ -227,6 +228,7 @@
     <div class="tradeup-popup" id="tradeupPopup">
         <div class="tradeup-popup-content">
             <div class="tradeup-popup-header">
+                <div class="tradeup-popup-title">选择皮肤</div>
                 <button class="tradeup-popup-close" id="tradeupPopupClose">&times;</button>
             </div>
             <div class="tradeup-popup-body">

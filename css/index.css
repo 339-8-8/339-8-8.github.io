@@ -5,6 +5,27 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+/* 全局隐藏所有滚动条箭头 - 最优先 */
+::-webkit-scrollbar-button {
+    display: none !important;
+    height: 0 !important;
+    width: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+::-webkit-scrollbar-button:start:decrement {
+    display: none !important;
+}
+
+::-webkit-scrollbar-button:end:increment {
+    display: none !important;
+}
+
+::-webkit-scrollbar-corner {
+    display: none !important;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -1605,9 +1626,20 @@ body {
     overflow: hidden;
 }
 
+/* 弹出窗口头部 */
 .tradeup-popup-header {
-    background: white;
-    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 20px 15px 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.tradeup-popup-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
 }
 
 .tradeup-popup-close {
@@ -1649,31 +1681,255 @@ body {
     width: 795px;
 }
 
+/* 弹出窗口滚动条美化 */
+.tradeup-popup-left::-webkit-scrollbar {
+    width: 14px;
+}
+
+.tradeup-popup-left::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 8px;
+    margin: 4px 0;
+    box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+.tradeup-popup-left::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #667eea, #764ba2);
+    border-radius: 8px;
+    border: 3px solid #f1f5f9;
+    transition: all 0.3s ease;
+}
+
+.tradeup-popup-left::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #5a67d8, #6b46c1);
+    transform: scale(1.05);
+}
+
+.tradeup-popup-left::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(180deg, #4c51bf, #553c9a);
+    transform: scale(0.95);
+}
+
+/* 皮肤位置提示 */
+.skin-position-hint {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 100;
+}
+
+.position-indicator {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(255, 107, 107, 0.7);
+    pointer-events: none;
+    transition: top 0.3s ease;
+    z-index: 101;
+}
+
+.position-indicator::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid #ff6b6b;
+}
+
+.position-indicator::after {
+    content: attr(data-position);
+    position: absolute;
+    top: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #ff6b6b;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+/* 滚动条点击区域 */
+.tradeup-popup-left {
+    position: relative;
+    cursor: pointer;
+}
+
+.tradeup-popup-left::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 14px;
+    height: 100%;
+    background: transparent;
+    z-index: 5;
+    pointer-events: auto;
+}
+
+.tradeup-popup-left:hover::before {
+    background: rgba(102, 126, 234, 0.1);
+}
+
+/* 选中的皮肤高亮 */
+.selected-skin-highlight {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: rgba(72, 187, 120, 0.1);
+    border: 2px solid #48bb78;
+    border-radius: 6px;
+    pointer-events: none;
+    z-index: 99;
+    transition: top 0.3s ease;
+}
+
+/* 弹出窗口滚动条美化 - 隐藏箭头 */
+.tradeup-popup-left::-webkit-scrollbar {
+    width: 14px;
+}
+
+.tradeup-popup-left::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 8px;
+    margin: 4px 0;
+    box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+.tradeup-popup-left::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #667eea, #764ba2);
+    border-radius: 8px;
+    border: 3px solid #f1f5f9;
+    transition: all 0.3s ease;
+}
+
+.tradeup-popup-left::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #5a67d8, #6b46c1);
+    transform: scale(1.05);
+}
+
+.tradeup-popup-left::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(180deg, #4c51bf, #553c9a);
+    transform: scale(0.95);
+}
+
+/* 彻底隐藏滚动条箭头 - 最高优先级 */
+.tradeup-popup-left::-webkit-scrollbar-button {
+    display: none !important;
+    height: 0 !important;
+    width: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.tradeup-popup-left::-webkit-scrollbar-button:start:decrement {
+    display: none !important;
+    height: 0 !important;
+    width: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.tradeup-popup-left::-webkit-scrollbar-button:end:increment {
+    display: none !important;
+    height: 0 !important;
+    width: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.tradeup-popup-left::-webkit-scrollbar-corner {
+    display: none !important;
+    height: 0 !important;
+    width: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Firefox 滚动条样式 */
+.tradeup-popup-left {
+    scrollbar-width: thin;
+    scrollbar-color: #667eea #f1f5f9;
+}
+
 .tradeup-popup-skins {
     display: flex;
     flex-wrap: wrap;
     gap: 0;
     width: 794px;
+    height: 100%;
+    overflow: visible;
+}
+
+.custom-scrollbar-content .tradeup-popup-skins {
+    width: 100%;
+    padding-right: 0;
 }
 
 .tradeup-popup-skin-card {
     background: white;
-    border-radius: 8px;
-    padding: 12px;
+    border-radius: 6px;
+    padding: 8px;
     border: 1px solid #e0e0e0;
-    transition: all 0.2s ease;
     width: 165px;
-    height: 193px;
+    height: 60px;
     margin-top: 7px;
     margin-right: 28px;
-    display: inline-block;
-    vertical-align: top;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
-.tradeup-popup-skin-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
-    border-color: #cbd5e0;
+.tradeup-popup-skin-card.selected {
+    background: #f0fff4;
+    border: 2px solid #48bb78;
+}
+
+.tradeup-popup-skin-name {
+    font-weight: 600;
+    color: #2d3748;
+    font-size: 13px;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.tradeup-popup-skin-card.selected .tradeup-popup-skin-name {
+    color: #22543d;
+    font-weight: 700;
+}
+
+.tradeup-popup-skin-wear {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4a5568;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    align-self: flex-end;
+}
+
+.tradeup-popup-skin-card.selected .tradeup-popup-skin-wear {
+    color: #22543d;
+    font-weight: 700;
 }
 
 .tradeup-popup-skin-main {

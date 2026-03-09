@@ -193,18 +193,33 @@ const UserInventoryEnhanced = {
             }
         };
         
-        // 存储原始皮肤数据
-        for (let i = 0; i < processedSkins.length; i++) {
-            const skin = processedSkins[i];
-            window.originalSkinsData.skins.push({
-                originalName: skin.originalName,
-                processedName: skin.processedName,
-                wear: skin.wear
+        // 先匹配所有皮肤并收集信息
+        const skinMatchResults = [];
+        for (const skin of processedSkins) {
+            const matchResult = this.findMatchingSkin(skin.processedName, casesData);
+            skinMatchResults.push({
+                skin: skin,
+                matchResult: matchResult
             });
         }
         
-        for (const skin of processedSkins) {
-            const matchResult = this.findMatchingSkin(skin.processedName, casesData);
+        // 存储原始皮肤数据（包含皮肤级别）
+        for (let i = 0; i < processedSkins.length; i++) {
+            const skin = processedSkins[i];
+            const matchResult = skinMatchResults[i].matchResult;
+            const grade = matchResult.matched ? matchResult.grade : '未知';
+            window.originalSkinsData.skins.push({
+                originalName: skin.originalName,
+                processedName: skin.processedName,
+                wear: skin.wear,
+                grade: grade
+            });
+        }
+        
+        // 处理皮肤数据
+        for (let i = 0; i < processedSkins.length; i++) {
+            const skin = processedSkins[i];
+            const matchResult = skinMatchResults[i].matchResult;
             
             if (matchResult.matched) {
                 // 计算转换磨损值
@@ -791,10 +806,19 @@ const UserInventoryEnhanced = {
             
             // 计算皮肤在原始数据中的位置顺序
             if (window.originalSkinsData && window.originalSkinsData.skins) {
-                const originalIndex = window.originalSkinsData.skins.findIndex(s => 
-                    s.originalName === skin.originalName && s.wear === skin.wear
-                );
-                skin.originalPosition = originalIndex !== -1 ? originalIndex + 1 : 0;
+                let position = -1;
+                
+                // 直接在原始数据（筛选前）中从后往前找
+                for (let i = window.originalSkinsData.skins.length - 1; i >= 0; i--) {
+                    if (window.originalSkinsData.skins[i].originalName === skin.originalName && 
+                        window.originalSkinsData.skins[i].wear === skin.wear) {
+                        position = i;
+                        break;
+                    }
+                }
+                
+                // 位置就是在原始数组中的索引+1
+                skin.originalPosition = position !== -1 ? (position + 1) : 0;
             } else {
                 skin.originalPosition = 0;
             }
@@ -839,6 +863,30 @@ const UserInventoryEnhanced = {
         
         // 在显示结果前，按照原始位置从大到小排序
         bestResult.group.sort((a, b) => b.originalPosition - a.originalPosition);
+        
+        // 序号1的位置保持筛选前的，序号2-10的位置重新计算为筛选后的
+        if (window.originalSkinsData && window.originalSkinsData.skins) {
+            bestResult.group.forEach((skin, index) => {
+                // 序号1的皮肤（index 0）保持不变
+                if (index === 0) return;
+                
+                // 序号2-10的皮肤，计算筛选后的位置
+                const filteredSkins = window.originalSkinsData.skins.filter(s => 
+                    s.grade === skin.grade
+                );
+                
+                let positionInFiltered = -1;
+                for (let i = filteredSkins.length - 1; i >= 0; i--) {
+                    if (filteredSkins[i].originalName === skin.originalName && 
+                        filteredSkins[i].wear === skin.wear) {
+                        positionInFiltered = i;
+                        break;
+                    }
+                }
+                
+                skin.originalPosition = positionInFiltered !== -1 ? (positionInFiltered + 1) : 0;
+            });
+        }
         
         let skinListHtml = '<div class="tradeup-skin-list">';
         bestResult.group.forEach((skin, index) => {
@@ -896,6 +944,11 @@ const UserInventoryEnhanced = {
         if (popupBtn) {
             popupBtn.style.display = 'block';
         }
+        
+        const copyScriptBtn = document.getElementById('tradeupCopyScriptBtn');
+        if (copyScriptBtn) {
+            copyScriptBtn.style.display = 'block';
+        }
     },
     
     // 显示弹出窗口
@@ -918,7 +971,7 @@ const UserInventoryEnhanced = {
         const adjustedLeftHeight = 740 / scale;
         const adjustedPaddingLeft = 57 / scale;
         const adjustedSkinWidth = 165 / scale;
-        const adjustedSkinHeight = 193 / scale;
+        const adjustedSkinHeight = 183 / scale; //193
         const adjustedSkinMarginTop = 7 / scale;
         const adjustedSkinMarginRight = 28 / scale;
         const adjustedSkinPadding = 12 / scale;
@@ -955,10 +1008,22 @@ const UserInventoryEnhanced = {
         
         let skinsHtml = '';
         
-        if (this.currentTradeupResult) {
-            // 显示汰换结果
-            this.currentTradeupResult.skins.forEach((skin, index) => {
-                skinsHtml += this.createSkinCard(skin);
+        if (this.currentTradeupResult && window.originalSkinsData && window.originalSkinsData.skins) {
+            // 显示全部原始皮肤数据，对被选中的皮肤做明显区分
+            const selectedSkins = this.currentTradeupResult.skins;
+            const selectedSkinsSet = new Set(selectedSkins.map(s => `${s.originalName}-${s.wear}`));
+            
+            window.originalSkinsData.skins.forEach((skin, index) => {
+                const isSelected = selectedSkinsSet.has(`${skin.originalName}-${skin.wear}`);
+                const skinCard = this.createSkinCard({
+                    skin: skin.originalName,
+                    crate: '原始数据',
+                    grade: isSelected ? '选中' : '未选中',
+                    wear: skin.wear,
+                    isSelected: isSelected,
+                    originalPosition: index + 1
+                });
+                skinsHtml += skinCard;
             });
         } else {
             // 显示测试数据 - 76 个皮肤
@@ -997,6 +1062,7 @@ const UserInventoryEnhanced = {
                     });
                 });
             }
+            
             // 确保正好 76 个
             testSkins.length = 76;
             
@@ -1017,23 +1083,167 @@ const UserInventoryEnhanced = {
                 card.style.marginRight = adjustedSkinMarginRight + 'px';
                 card.style.padding = adjustedSkinPadding + 'px';
             });
+            
+            // 初始化滚动条点击定位功能
+            this.initScrollbarPositioning();
         }, 10);
         
         popup.classList.add('show');
     },
     
+    // 初始化滚动条点击定位功能
+    initScrollbarPositioning: function() {
+        const scrollContainer = document.querySelector('.tradeup-popup-left');
+        const skinsContainer = document.getElementById('tradeupPopupSkins');
+        
+        if (!scrollContainer || !skinsContainer) return;
+        
+        // 获取选中的皮肤
+        const selectedSkins = Array.from(document.querySelectorAll('.tradeup-popup-skin-card.selected'));
+        if (selectedSkins.length === 0) return;
+        
+        // 获取皮肤卡片尺寸信息
+        const skinCards = document.querySelectorAll('.tradeup-popup-skin-card');
+        const skinHeight = skinCards.length > 0 ? skinCards[0].offsetHeight : 60;
+        const skinMarginTop = parseInt(getComputedStyle(skinCards[0]).marginTop) || 0;
+        const adjustedSkinHeight = skinHeight + skinMarginTop;
+        
+        // 创建位置提示容器
+        const hintContainer = document.createElement('div');
+        hintContainer.className = 'skin-position-hint';
+        scrollContainer.appendChild(hintContainer);
+        
+        // 创建位置指示器
+        const positionIndicator = document.createElement('div');
+        positionIndicator.className = 'position-indicator';
+        positionIndicator.style.display = 'none';
+        hintContainer.appendChild(positionIndicator);
+        
+        // 创建选中皮肤高亮
+        const skinHighlight = document.createElement('div');
+        skinHighlight.className = 'selected-skin-highlight';
+        skinHighlight.style.display = 'none';
+        hintContainer.appendChild(skinHighlight);
+        
+        let currentPosition = 0;
+        
+        // 滚动条点击事件
+        scrollContainer.addEventListener('click', (e) => {
+            const rect = scrollContainer.getBoundingClientRect();
+            const clickY = e.clientY - rect.top;
+            const containerHeight = rect.height;
+            
+            // 检查是否点击在滚动条区域
+            if (e.clientX > rect.right - 14) {
+                // 计算点击位置对应的皮肤序号
+                const totalHeight = skinsContainer.scrollHeight;
+                const visibleHeight = containerHeight;
+                const maxScroll = totalHeight - visibleHeight;
+                
+                // 计算点击位置对应的滚动位置
+                const scrollRatio = clickY / containerHeight;
+                const targetScroll = scrollRatio * maxScroll;
+                
+                // 计算对应的皮肤序号
+                const skinIndex = Math.floor(targetScroll / adjustedSkinHeight);
+                
+                // 找到最近的选中皮肤
+                const nearestSelected = this.findNearestSelectedSkin(selectedSkins, skinIndex);
+                
+                if (nearestSelected !== -1) {
+                    this.showPositionHint(nearestSelected, selectedSkins, positionIndicator, skinHighlight, scrollContainer);
+                    currentPosition = nearestSelected;
+                }
+            }
+        });
+        
+        // 初始显示第一个选中的皮肤
+        if (selectedSkins.length > 0) {
+            this.showPositionHint(0, selectedSkins, positionIndicator, skinHighlight, scrollContainer);
+            currentPosition = 0;
+        }
+        
+        // 键盘导航支持
+        document.addEventListener('keydown', (e) => {
+            if (selectedSkins.length === 0) return;
+            
+            if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                e.preventDefault();
+                currentPosition = (currentPosition + 1) % selectedSkins.length;
+                this.showPositionHint(currentPosition, selectedSkins, positionIndicator, skinHighlight, scrollContainer);
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                e.preventDefault();
+                currentPosition = (currentPosition - 1 + selectedSkins.length) % selectedSkins.length;
+                this.showPositionHint(currentPosition, selectedSkins, positionIndicator, skinHighlight, scrollContainer);
+            }
+        });
+    },
+    
+    // 找到最近的选中皮肤
+    findNearestSelectedSkin: function(selectedSkins, targetIndex) {
+        let nearestIndex = -1;
+        let minDistance = Infinity;
+        
+        selectedSkins.forEach((skin, index) => {
+            const skinIndex = Array.from(skin.parentNode.children).indexOf(skin);
+            const distance = Math.abs(skinIndex - targetIndex);
+            
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearestIndex = index;
+            }
+        });
+        
+        return nearestIndex;
+    },
+    
+    // 显示位置提示
+    showPositionHint: function(positionIndex, selectedSkins, positionIndicator, skinHighlight, scrollContainer) {
+        if (positionIndex < 0 || positionIndex >= selectedSkins.length) return;
+        
+        const targetSkin = selectedSkins[positionIndex];
+        const skinRect = targetSkin.getBoundingClientRect();
+        const containerRect = scrollContainer.getBoundingClientRect();
+        
+        // 计算皮肤在容器中的相对位置
+        const skinTop = skinRect.top - containerRect.top + scrollContainer.scrollTop;
+        const skinHeight = skinRect.height;
+        
+        // 显示位置指示器
+        positionIndicator.style.display = 'block';
+        positionIndicator.style.top = (skinTop + skinHeight / 2) + 'px';
+        positionIndicator.setAttribute('data-position', `#${positionIndex + 1}`);
+        
+        // 显示选中皮肤高亮
+        skinHighlight.style.display = 'block';
+        skinHighlight.style.top = skinTop + 'px';
+        
+        // 滚动到目标皮肤
+        const scrollTop = skinTop - containerRect.height / 2 + skinHeight / 2;
+        scrollContainer.scrollTo({
+            top: scrollTop,
+            behavior: 'smooth'
+        });
+        
+        // 3秒后自动隐藏提示
+        setTimeout(() => {
+            positionIndicator.style.display = 'none';
+            skinHighlight.style.display = 'none';
+        }, 3000);
+    },
+    
     // 创建皮肤卡片 HTML
     createSkinCard: function(skin) {
+        const isSelected = skin.isSelected || false;
+        const selectedClass = isSelected ? ' selected' : '';
+        
+        // 移除皮肤名字中的磨损等级
+        const skinName = skin.skin.replace(/\s*\([^)]*\)/g, '').replace(/\s*\[[^\]]*\]/g, '');
+        
         return `
-            <div class="tradeup-popup-skin-card">
-                <div class="tradeup-popup-skin-main">
-                    <div class="tradeup-popup-skin-name">${skin.skin}</div>
-                    <div class="tradeup-popup-skin-details">
-                        <div class="tradeup-popup-skin-crate">${skin.crate}</div>
-                        <div class="tradeup-popup-skin-grade">${skin.grade}</div>
-                    </div>
-                </div>
-                <div class="tradeup-popup-skin-wear">磨损：${skin.wear}</div>
+            <div class="tradeup-popup-skin-card${selectedClass}">
+                <div class="tradeup-popup-skin-name">${skinName}</div>
+                <div class="tradeup-popup-skin-wear" title="${skin.wear}">${skin.wear}</div>
             </div>
         `;
     },
@@ -1089,6 +1299,7 @@ const UserInventoryEnhanced = {
         }
         
         const skinsToRemove = this.currentTradeupResult.skins;
+        const targetSkin = this.currentTradeupResult.targetSkin;
         
         // 从processedData.matched中删除这10个皮肤
         if (this.processedData && this.processedData.matched) {
@@ -1117,6 +1328,28 @@ const UserInventoryEnhanced = {
             this.displaySummaryCompact(this.processedData);
         }
         
+        // 从originalSkinsData中删除选中的10个皮肤
+        if (window.originalSkinsData && window.originalSkinsData.skins) {
+            // 创建一个Set来存储要删除的皮肤的唯一标识
+            const skinsToRemoveSet = new Set(skinsToRemove.map(s => `${s.originalName}-${s.wear}`));
+            
+            // 过滤掉要删除的皮肤
+            window.originalSkinsData.skins = window.originalSkinsData.skins.filter(skin => {
+                return !skinsToRemoveSet.has(`${skin.originalName}-${skin.wear}`);
+            });
+            
+            // 添加上级皮肤到最前面
+            if (targetSkin) {
+                const upperGradeSkin = {
+                    originalName: '合成产物',
+                    processedName: '合成产物',
+                    wear: 0.111111111,
+                    grade: targetSkin.grade
+                };
+                window.originalSkinsData.skins.unshift(upperGradeSkin);
+            }
+        }
+        
         // 清空结果（添加动画效果）
         const resultDiv = document.getElementById('tradeupResult');
         resultDiv.classList.remove('show');
@@ -1135,6 +1368,12 @@ const UserInventoryEnhanced = {
             const popupBtn = document.getElementById('tradeupPopupBtn');
             if (popupBtn) {
                 popupBtn.style.display = 'none';
+            }
+            
+            // 隐藏复制脚本按钮
+            const copyScriptBtn = document.getElementById('tradeupCopyScriptBtn');
+            if (copyScriptBtn) {
+                copyScriptBtn.style.display = 'none';
             }
             
             // 清空当前结果
@@ -1195,6 +1434,219 @@ const UserInventoryEnhanced = {
         setTimeout(() => {
             resultDiv.classList.add('show');
         }, 10);
+    },
+
+    // 生成自动脚本内容
+    generateAutoScript: function() {
+        if (!this.currentTradeupResult || !this.currentTradeupResult.skins) {
+            return '';
+        }
+        
+        const skins = this.currentTradeupResult.skins;
+        let scriptContent = '# 自动生成的汰换脚本\n';
+        
+        // 添加固定操作 - 鼠标移动
+        scriptContent += '# 固定操作 鼠标移动\n';
+        scriptContent += 'move coord1 0.1\n';
+        scriptContent += 'wait 0.5\n\n';
+        
+        skins.forEach((skin, skinIndex) => {
+            const originalPosition = skin.originalPosition || 0;
+            if (originalPosition === 0) {
+                scriptContent += `# 皮肤${skinIndex + 1}: 无法获取原始位置\n\n`;
+                return;
+            }
+            
+            scriptContent += `# 皮肤${skinIndex + 1}: 原始位置 ${originalPosition}\n`;
+            
+            // 检查是否有原始皮肤数据
+            if (!window.originalSkinsData || !window.originalSkinsData.skins) {
+                scriptContent += `# 无法获取完整皮肤列表\n\n`;
+                return;
+            }
+            
+            // 先根据皮肤级别筛选originalSkinsData
+            const filteredSkins = window.originalSkinsData.skins.filter(s => 
+                s.grade === skin.grade
+            );
+            
+            const totalSkins = filteredSkins.length;
+            const position = originalPosition;
+            
+            // 计算16个为一组
+            const groupSize = 16;
+            const totalGroups = Math.ceil(totalSkins / groupSize);
+            const skinGroup = Math.ceil(position / groupSize);
+            const isLastGroup = skinGroup === totalGroups;
+            
+            if (isLastGroup) {
+                // 最后一组的情况
+                scriptContent += 'wheel up 60000\n';
+                scriptContent += 'wait 0.5\n';
+                
+                // 计算最后一组的皮肤数量
+                const skinsInLastGroup = totalSkins - (totalGroups - 1) * groupSize;
+                
+                // 计算皮肤在组内的位置
+                const positionInGroup = position - (totalGroups - 1) * groupSize;
+                
+                // 根据最后一组的数量计算偏移
+                let offset = 0;
+                if (skinsInLastGroup > 12) {
+                    offset = 0;
+                } else if (skinsInLastGroup > 8) {
+                    offset = 4;
+                } else if (skinsInLastGroup > 4) {
+                    offset = 8;
+                } else {
+                    offset = 12;
+                }
+                
+                const finalCoordPosition = positionInGroup + offset;
+                const coordNum = Math.min(Math.max(finalCoordPosition, 1), 16);
+                
+                scriptContent += `move coord${coordNum} 0.1\n`;
+                scriptContent += 'click left 1\n';
+                scriptContent += 'wait 0.5\n';
+                scriptContent += 'wheel down 60000\n';
+                scriptContent += 'wait 0.5\n';
+            } else {
+                // 不是最后一组的情况
+                let remaining = position;
+                
+                // 收集所有wheel命令
+                const wheelCommands = [];
+                
+                if (remaining > 64) {
+                    let scroll64Count = Math.floor(remaining / 64);
+                    if (remaining % 64 === 0) {
+                        scroll64Count -= 1;
+                    }
+                    for (let i = 0; i < scroll64Count; i++) {
+                        wheelCommands.push('wheel up 3800');
+                    }
+                    remaining = remaining % 64;
+                    if (remaining === 0) {
+                        remaining = 64;
+                    }
+                }
+                
+                if (remaining > 16) {
+                    let scroll16Count = Math.floor(remaining / 16);
+                    if (remaining % 16 === 0) {
+                        scroll16Count -= 1;
+                    }
+                    for (let i = 0; i < scroll16Count; i++) {
+                        wheelCommands.push('wheel up 960');
+                    }
+                    remaining = remaining % 16;
+                    if (remaining === 0) {
+                        remaining = 16;
+                    }
+                }
+                
+                // 合并重复的wheel命令，将数值相加
+                const mergedCommands = [];
+                
+                for (const cmd of wheelCommands) {
+                    const match = cmd.match(/^wheel up (\d+)$/);
+                    if (match) {
+                        const value = parseInt(match[1]);
+                        
+                        if (mergedCommands.length > 0) {
+                            const lastCmd = mergedCommands[mergedCommands.length - 1];
+                            const lastMatch = lastCmd.match(/^wheel up (\d+)$/);
+                            
+                            if (lastMatch) {
+                                // 合并数值
+                                const lastValue = parseInt(lastMatch[1]);
+                                mergedCommands[mergedCommands.length - 1] = `wheel up ${lastValue + value}`;
+                                continue;
+                            }
+                        }
+                    }
+                    
+                    mergedCommands.push(cmd);
+                }
+                
+                // 输出命令，每个wheel后面加wait 0.5
+                for (const cmd of mergedCommands) {
+                    scriptContent += cmd + '\n';
+                    scriptContent += 'wait 0.5\n';
+                }
+                
+                if (remaining > 0) {
+                    const coordNum = remaining;
+                    scriptContent += `move coord${coordNum} 0.1\n`;
+                }
+                
+                scriptContent += 'click left 1\n';
+                scriptContent += 'wait 0.5\n';
+                scriptContent += 'wheel down 60000\n';
+                scriptContent += 'wait 0.5\n';
+            }
+            
+            scriptContent += '\n';
+        });
+        
+        // 添加固定操作 - 最后确认
+        scriptContent += '# 固定操作\n';
+        scriptContent += 'move coord17 0.1\n';
+        scriptContent += 'click left 1\n';
+        scriptContent += 'wait 0.5\n';
+        scriptContent += 'move coord18 0.1\n';
+        scriptContent += 'click left 1\n';
+        scriptContent += 'wait 0.5\n';
+        
+        return scriptContent;
+    },
+
+    // 复制自动脚本到剪贴板
+    copyAutoScript: function() {
+        const scriptContent = this.generateAutoScript();
+        const copyBtn = document.getElementById('tradeupCopyScriptBtn');
+        const originalText = copyBtn.textContent;
+        
+        if (!scriptContent) {
+            if (copyBtn) {
+                copyBtn.textContent = '没有内容';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 1500);
+            }
+            return;
+        }
+        
+        const doCopy = () => {
+            if (copyBtn) {
+                copyBtn.textContent = '已复制';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 1500);
+            }
+        };
+        
+        navigator.clipboard.writeText(scriptContent).then(() => {
+            doCopy();
+        }).catch(err => {
+            console.error('复制失败:', err);
+            const textArea = document.createElement('textarea');
+            textArea.value = scriptContent;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                doCopy();
+            } catch (e) {
+                if (copyBtn) {
+                    copyBtn.textContent = '复制失败';
+                    setTimeout(() => {
+                        copyBtn.textContent = originalText;
+                    }, 1500);
+                }
+            }
+            document.body.removeChild(textArea);
+        });
     }
 };
 
@@ -1315,5 +1767,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         }
+    }
+    
+    const tradeupCopyScriptBtn = document.getElementById('tradeupCopyScriptBtn');
+    if (tradeupCopyScriptBtn) {
+        tradeupCopyScriptBtn.addEventListener('click', function() {
+            UserInventoryEnhanced.copyAutoScript();
+        });
     }
 });
