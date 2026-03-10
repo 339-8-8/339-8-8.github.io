@@ -1414,7 +1414,7 @@ body {
 }
 
 .compact-skin-item {
-    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    background: #f7fafc;
     border-radius: 8px;
     padding: 10px 12px;
     border: 1px solid #e2e8f0;
@@ -1423,10 +1423,11 @@ body {
     justify-content: space-between;
     gap: 8px;
     transition: all 0.2s ease;
+    border-left: 4px solid #cbd5e0;
 }
 
 .compact-skin-item:hover {
-    background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+    background: #edf2f7;
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
@@ -1737,6 +1738,7 @@ body {
     border-radius: 10px;
     padding: 12px;
     border: 1px solid #e2e8f0;
+    border-left: 4px solid #cbd5e0;
     font-size: 13px;
     transition: all 0.2s ease;
 }
@@ -1999,6 +2001,261 @@ body {
     width: 0 !important;
     opacity: 0 !important;
     pointer-events: none !important;
+}
+
+
+/* 武器箱/收藏品选择区域 */
+.crate-collection-section {
+    margin-top: 16px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.crate-collection-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.crate-collection-filter {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.filter-btn {
+    padding: 6px 12px;
+    border: 1px solid #cbd5e0;
+    background: white;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #4a5568;
+}
+
+.filter-btn:hover {
+    background: #edf2f7;
+    border-color: #a0aec0;
+}
+
+.filter-btn.active {
+    background: #48bb78;
+    color: white;
+    border-color: #48bb78;
+}
+
+.crate-collection-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* 武器箱/收藏品选择项 */
+.crate-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 13px;
+}
+
+
+
+.crate-item.selected {
+}
+
+.crate-checkbox {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #a0aec0;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.crate-item.selected .crate-checkbox {
+    background: #48bb78;
+    border-color: #48bb78;
+}
+
+.crate-checkmark {
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    display: none;
+    line-height: 1;
+}
+
+.crate-item.selected .crate-checkmark {
+    display: block;
+}
+
+.crate-name {
+    flex: 1;
+    color: #2d3748;
+    font-size: 12px;
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+/* 武器箱/收藏品颜色区分 */
+.crate-color-1 {
+    border-left: 5px solid #e53e3e;
+    background-color: #fff5f5;
+}
+
+.crate-color-2 {
+    border-left: 5px solid #dd6b20;
+    background-color: #fffaf0;
+}
+
+.crate-color-3 {
+    border-left: 5px solid #d69e2e;
+    background-color: #fffff0;
+}
+
+.crate-color-4 {
+    border-left: 5px solid #38a169;
+    background-color: #f0fff4;
+}
+
+.crate-color-5 {
+    border-left: 5px solid #319795;
+    background-color: #e6fffa;
+}
+
+.crate-color-6 {
+    border-left: 5px solid #3182ce;
+    background-color: #ebf8ff;
+}
+
+.crate-color-7 {
+    border-left: 5px solid #5a67d8;
+    background-color: #eee6ff;
+}
+
+.crate-color-8 {
+    border-left: 5px solid #805ad5;
+    background-color: #faf5ff;
+}
+
+.crate-color-9 {
+    border-left: 5px solid #d53f8c;
+    background-color: #fff5f7;
+}
+
+.crate-color-10 {
+    border-left: 5px solid #f56565;
+    background-color: #fff0f0;
+}
+
+.crate-color-11 {
+    border-left: 5px solid #ed8936;
+    background-color: #fffbf0;
+}
+
+.crate-color-12 {
+    border-left: 5px solid #ecc94b;
+    background-color: #fffff5;
+}
+
+/* 汰换结果颜色区分 */
+.tradeup-result-crate-1 {
+    background-color: #fff5f5;
+    border-left: 5px solid #e53e3e;
+}
+
+.tradeup-result-crate-2 {
+    background-color: #fffaf0;
+    border-left: 5px solid #dd6b20;
+}
+
+.tradeup-result-crate-3 {
+    background-color: #fffff0;
+    border-left: 5px solid #d69e2e;
+}
+
+.tradeup-result-crate-4 {
+    background-color: #f0fff4;
+    border-left: 5px solid #38a169;
+}
+
+.tradeup-result-crate-5 {
+    background-color: #e6fffa;
+    border-left: 5px solid #319795;
+}
+
+.tradeup-result-crate-6 {
+    background-color: #ebf8ff;
+    border-left: 5px solid #3182ce;
+}
+
+.tradeup-result-crate-7 {
+    background-color: #eee6ff;
+    border-left: 5px solid #5a67d8;
+}
+
+.tradeup-result-crate-8 {
+    background-color: #faf5ff;
+    border-left: 5px solid #805ad5;
+}
+
+.tradeup-result-crate-9 {
+    background-color: #fff5f7;
+    border-left: 5px solid #d53f8c;
+}
+
+.tradeup-result-crate-10 {
+    background-color: #fff0f0;
+    border-left: 5px solid #f56565;
+}
+
+.tradeup-result-crate-11 {
+    background-color: #fffbf0;
+    border-left: 5px solid #ed8936;
+}
+
+.tradeup-result-crate-12 {
+    background-color: #fffff5;
+    border-left: 5px solid #ecc94b;
+}
+
+/* 滚动条美化 */
+.crate-collection-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.crate-collection-list::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+.crate-collection-list::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 3px;
+    transition: background 0.2s ease;
+}
+
+.crate-collection-list::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
 }
 
 .tradeup-popup-left::-webkit-scrollbar-button:end:increment {

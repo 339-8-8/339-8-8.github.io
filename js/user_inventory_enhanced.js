@@ -11,6 +11,27 @@ const UserInventoryEnhanced = {
     // 存储保存的目标产物记录
     savedTradeupRecords: [],
     
+    // 存储选中的武器箱/收藏品
+    selectedCrates: {},
+    
+    // 武器箱/收藏品颜色映射
+    crateColors: [
+        'crate-color-1', 'crate-color-2', 'crate-color-3', 'crate-color-4',
+        'crate-color-5', 'crate-color-6', 'crate-color-7', 'crate-color-8',
+        'crate-color-9', 'crate-color-10', 'crate-color-11', 'crate-color-12'
+    ],
+    
+    // 汰换结果颜色映射
+    resultCrateColors: [
+        'tradeup-result-crate-1', 'tradeup-result-crate-2', 'tradeup-result-crate-3', 
+        'tradeup-result-crate-4', 'tradeup-result-crate-5', 'tradeup-result-crate-6',
+        'tradeup-result-crate-7', 'tradeup-result-crate-8', 'tradeup-result-crate-9',
+        'tradeup-result-crate-10', 'tradeup-result-crate-11', 'tradeup-result-crate-12'
+    ],
+    
+    // 武器箱/收藏品到颜色的映射
+    crateColorMap: {},
+    
     // 初始化：从localStorage加载保存的记录
     init: function() {
         this.loadSavedRecords();
@@ -431,6 +452,10 @@ const UserInventoryEnhanced = {
                 const importResults = document.getElementById('importResults');
                 this.displayResults(results.matched, importResults, 'matched');
                 
+                // 初始化武器箱/收藏品选择功能并渲染列表
+                this.initCrateSelection();
+                this.renderCrateList();
+                
                 // 显示一键汰换区域
                 const tradeupSection = document.getElementById('tradeupSection');
                 if (tradeupSection) {
@@ -488,7 +513,7 @@ const UserInventoryEnhanced = {
         // 填充筛选选项
         this.populateFilterOptions(results);
         
-        // 初始显示所有结果
+        // 直接显示所有结果，不经过筛选
         this.filterAndDisplayCompact(results);
     },
     
@@ -655,8 +680,9 @@ const UserInventoryEnhanced = {
         
         let html = '<div class="compact-skin-list">';
         skins.forEach(skin => {
+            const colorClass = this.getCrateColorClass(skin.crate, true);
             html += `
-                <div class="compact-skin-item">
+                <div class="compact-skin-item ${colorClass}">
                     <div class="compact-skin-info">
                         <div class="compact-skin-name">${skin.skin}</div>
                         <div class="compact-skin-details">${skin.crate} · ${skin.grade}</div>
@@ -817,10 +843,10 @@ const UserInventoryEnhanced = {
             return;
         }
         
-        const matchedSkins = this.getMatchedSkins();
-        if (!matchedSkins || matchedSkins.length === 0) {
+        const filteredSkins = this.getFilteredSkins();
+        if (!filteredSkins || filteredSkins.length === 0) {
             resultDiv.className = 'tradeup-result error';
-            resultDiv.innerHTML = '❌ 请先处理皮肤数据';
+            resultDiv.innerHTML = '❌ 没有符合条件的皮肤数据，请先处理皮肤数据或选择武器箱/收藏品';
             setTimeout(() => {
                 resultDiv.classList.add('show');
             }, 10);
@@ -858,8 +884,8 @@ const UserInventoryEnhanced = {
         
         const targetConvertedSum = this.calculateConvertedWear(targetWearValue, targetSkin.minWear, targetSkin.maxWear) * 10;
         
-        const candidateSkins = matchedSkins.filter(skin => {
-            return skin.grade === lowerGrade && skin.crate === targetSkin.crate;
+        const candidateSkins = filteredSkins.filter(skin => {
+            return skin.grade === lowerGrade && this.selectedCrates[skin.crate];
         });
         
         if (candidateSkins.length < 10) {
@@ -969,8 +995,9 @@ const UserInventoryEnhanced = {
         
         let skinListHtml = '<div class="tradeup-skin-list">';
         bestResult.group.forEach((skin, index) => {
+            const colorClass = this.getCrateColorClass(skin.crate, true);
             skinListHtml += `
-                <div class="tradeup-skin-item">
+                <div class="tradeup-skin-item ${colorClass}">
                     <div class="tradeup-skin-main">
                         <div class="tradeup-skin-name">
                             <span class="tradeup-order">#${index + 1}</span>
@@ -1088,13 +1115,6 @@ const UserInventoryEnhanced = {
             
             // 更新window对象上的数据
             window.userProcessedData = this.processedData;
-            
-            // 更新皮肤库存显示
-            const importResults = document.getElementById('importResults');
-            this.displayResults(this.processedData.matched, importResults, 'matched');
-            
-            // 更新汇总信息显示
-            this.displaySummaryCompact(this.processedData);
         }
         
         // 从originalSkinsData中删除选中的10个皮肤
@@ -1119,31 +1139,46 @@ const UserInventoryEnhanced = {
             }
         }
         
-        // 清空结果（添加动画效果）
+        // 立即清空汰换结果
         const resultDiv = document.getElementById('tradeupResult');
         resultDiv.classList.remove('show');
+        resultDiv.className = 'tradeup-result';
+        resultDiv.innerHTML = '';
         
-        setTimeout(() => {
-            resultDiv.className = 'tradeup-result';
-            resultDiv.innerHTML = '';
-            
-            // 禁用确认和复制按钮
-            const confirmBtn = document.getElementById('tradeupConfirmBtn');
-            const copyScriptBtn = document.getElementById('tradeupCopyScriptBtn');
-            if (confirmBtn && copyScriptBtn) {
-                confirmBtn.disabled = true;
-                copyScriptBtn.disabled = true;
-            }
-            
-            // 隐藏弹出窗口按钮
-            const popupBtn = document.getElementById('tradeupPopupBtn');
-            if (popupBtn) {
-                popupBtn.style.display = 'none';
-            }
-            
-            // 清空当前结果
-            this.currentTradeupResult = null;
-        }, 300);
+        // 禁用确认和复制按钮
+        const confirmBtn = document.getElementById('tradeupConfirmBtn');
+        const copyScriptBtn = document.getElementById('tradeupCopyScriptBtn');
+        if (confirmBtn && copyScriptBtn) {
+            confirmBtn.disabled = true;
+            copyScriptBtn.disabled = true;
+        }
+        
+        // 隐藏弹出窗口按钮
+        const popupBtn = document.getElementById('tradeupPopupBtn');
+        if (popupBtn) {
+            popupBtn.style.display = 'none';
+        }
+        
+        // 清空当前结果
+        this.currentTradeupResult = null;
+        
+        // 重置筛选下拉框
+        const crateSelect = document.getElementById('crateSelect');
+        const gradeSelect = document.getElementById('gradeSelect');
+        const skinSelect = document.getElementById('skinSelect');
+        if (crateSelect) crateSelect.value = '';
+        if (gradeSelect) gradeSelect.value = '';
+        if (skinSelect) skinSelect.value = '';
+        
+        // 更新皮肤库存显示
+        const importResults = document.getElementById('importResults');
+        this.displayResults(this.processedData.matched, importResults, 'matched');
+        
+        // 更新汇总信息显示
+        this.displaySummaryCompact(this.processedData);
+        
+        // 更新武器箱/收藏品列表
+        this.renderCrateList();
     },
 
     // 从左侧获取目标产物数据
@@ -1873,4 +1908,164 @@ UserInventoryEnhanced.getUniqueUnmatchedSkinNames = function(unmatchedSkins) {
     
     // 去重
     return [...new Set(skinNames)];
+};
+
+// 初始化武器箱/收藏品选择功能
+UserInventoryEnhanced.initCrateSelection = function() {
+    const filterAllBtn = document.getElementById('filterAllBtn');
+    const filterNoneBtn = document.getElementById('filterNoneBtn');
+    
+    if (filterAllBtn) {
+        filterAllBtn.addEventListener('click', () => this.selectAllCrates());
+    }
+    
+    if (filterNoneBtn) {
+        filterNoneBtn.addEventListener('click', () => this.deselectAllCrates());
+    }
+};
+
+// 渲染武器箱/收藏品列表
+UserInventoryEnhanced.renderCrateList = function() {
+    const crateList = document.getElementById('crateCollectionList');
+    if (!crateList || !this.processedData || !this.processedData.matched) {
+        return;
+    }
+    
+    // 获取所有独特的武器箱/收藏品
+    const uniqueCrates = [...new Set(this.processedData.matched.map(skin => skin.crate))];
+    
+    // 清理掉不存在的武器箱/收藏品的选择状态
+    const newSelectedCrates = {};
+    uniqueCrates.forEach(crate => {
+        if (this.selectedCrates.hasOwnProperty(crate)) {
+            newSelectedCrates[crate] = this.selectedCrates[crate];
+        } else {
+            newSelectedCrates[crate] = true; // 新出现的默认选中
+        }
+    });
+    this.selectedCrates = newSelectedCrates;
+    
+    // 清空并重置颜色映射
+    crateList.innerHTML = '';
+    this.crateColorMap = {};
+    
+    // 为每个武器箱/收藏品分配颜色
+    uniqueCrates.forEach((crate, index) => {
+        const colorIndex = index % this.crateColors.length;
+        this.crateColorMap[crate] = {
+            crateColor: this.crateColors[colorIndex],
+            resultColor: this.resultCrateColors[colorIndex],
+            colorIndex: colorIndex + 1
+        };
+        
+        // 创建武器箱/收藏品项
+        const crateItem = document.createElement('div');
+        crateItem.className = `crate-item ${this.crateColors[colorIndex]}`;
+        crateItem.dataset.crate = crate;
+        
+        if (this.selectedCrates[crate]) {
+            crateItem.classList.add('selected');
+        }
+        
+        crateItem.innerHTML = `
+            <div class="crate-checkbox">
+                <span class="crate-checkmark">✓</span>
+            </div>
+            <div class="crate-name">${crate}</div>
+        `;
+        
+        // 点击切换选择状态
+        crateItem.addEventListener('click', () => this.toggleCrateSelection(crate));
+        
+        crateList.appendChild(crateItem);
+    });
+    
+    // 更新按钮状态
+    this.updateFilterButtons();
+};
+
+// 切换武器箱/收藏品选择状态
+UserInventoryEnhanced.toggleCrateSelection = function(crate) {
+    this.selectedCrates[crate] = !this.selectedCrates[crate];
+    
+    const crateItem = document.querySelector(`.crate-item[data-crate="${crate}"]`);
+    if (crateItem) {
+        if (this.selectedCrates[crate]) {
+            crateItem.classList.add('selected');
+        } else {
+            crateItem.classList.remove('selected');
+        }
+    }
+    
+    this.updateFilterButtons();
+};
+
+// 全选武器箱/收藏品
+UserInventoryEnhanced.selectAllCrates = function() {
+    if (!this.processedData || !this.processedData.matched) return;
+    
+    const uniqueCrates = [...new Set(this.processedData.matched.map(skin => skin.crate))];
+    uniqueCrates.forEach(crate => {
+        this.selectedCrates[crate] = true;
+    });
+    
+    document.querySelectorAll('.crate-item').forEach(item => {
+        item.classList.add('selected');
+    });
+    
+    this.updateFilterButtons();
+};
+
+// 取消全选武器箱/收藏品
+UserInventoryEnhanced.deselectAllCrates = function() {
+    if (!this.processedData || !this.processedData.matched) return;
+    
+    const uniqueCrates = [...new Set(this.processedData.matched.map(skin => skin.crate))];
+    uniqueCrates.forEach(crate => {
+        this.selectedCrates[crate] = false;
+    });
+    
+    document.querySelectorAll('.crate-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+    
+    this.updateFilterButtons();
+};
+
+// 更新筛选按钮状态
+UserInventoryEnhanced.updateFilterButtons = function() {
+    const filterAllBtn = document.getElementById('filterAllBtn');
+    const filterNoneBtn = document.getElementById('filterNoneBtn');
+    
+    if (!this.processedData || !this.processedData.matched) return;
+    
+    const uniqueCrates = [...new Set(this.processedData.matched.map(skin => skin.crate))];
+    const selectedCount = Object.values(this.selectedCrates).filter(v => v).length;
+    
+    if (filterAllBtn) {
+        filterAllBtn.classList.toggle('active', selectedCount === uniqueCrates.length);
+    }
+    
+    if (filterNoneBtn) {
+        filterNoneBtn.classList.toggle('active', selectedCount === 0);
+    }
+};
+
+// 获取选中的武器箱/收藏品的皮肤数据
+UserInventoryEnhanced.getFilteredSkins = function() {
+    if (!this.processedData || !this.processedData.matched) {
+        return [];
+    }
+    
+    return this.processedData.matched.filter(skin => {
+        return this.selectedCrates[skin.crate] === true;
+    });
+};
+
+// 获取武器箱/收藏品的颜色类
+UserInventoryEnhanced.getCrateColorClass = function(crate, isResult = false) {
+    if (this.crateColorMap[crate]) {
+        return isResult ? this.crateColorMap[crate].resultColor : this.crateColorMap[crate].crateColor;
+    }
+    return '';
 };
