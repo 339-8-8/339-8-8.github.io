@@ -382,7 +382,6 @@ const UserInventoryEnhanced = {
         const statusText = document.getElementById('statusText');
         const statusCount = document.getElementById('statusCount');
         const progressFill = document.getElementById('progressFill');
-        const importResults = document.getElementById('importResults');
         const processBtn = document.getElementById('processBtn');
         const processStatus = document.getElementById('processStatus');
         
@@ -424,21 +423,13 @@ const UserInventoryEnhanced = {
                     processBtn.style.display = 'block';
                 }, 500);
                 
-                // 显示汇总信息（紧凑版）
-                this.displaySummaryCompact(results);
-                
-                // 显示皮肤库存（完整版）
-                this.displayResults(results.matched, importResults, 'matched');
-                
                 // 生成并保存文件
                 const fileContent = this.generateUserInventoryFile(results);
                 this.saveToFile(fileContent);
                 
-                // 显示处理结果区域
-                const pasteResults = document.getElementById('pasteResults');
-                if (pasteResults) {
-                    pasteResults.style.display = 'block';
-                }
+                // 显示皮肤库存（完整版）
+                const importResults = document.getElementById('importResults');
+                this.displayResults(results.matched, importResults, 'matched');
                 
                 // 显示一键汰换区域
                 const tradeupSection = document.getElementById('tradeupSection');
@@ -465,6 +456,8 @@ const UserInventoryEnhanced = {
                     inventoryToggle.classList.add('collapsed');
                 }
                 
+                // 弹出提示框显示处理结果
+                this.showProcessResultPopup(results);
                 
             } catch (error) {
                 console.error('处理皮肤数据时出错:', error);
@@ -475,7 +468,7 @@ const UserInventoryEnhanced = {
                 processStatus.style.display = 'none';
                 processBtn.style.display = 'block';
                 
-                alert('处理皮肤数据时出错，请检查控制台获取详细信息');
+                alert('处理皮肤数据时出错：' + error.message);
             }
         }, 100);
     },
@@ -1719,3 +1712,165 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+
+
+// 显示处理结果弹出框
+UserInventoryEnhanced.showProcessResultPopup = function(results) {
+    const matchedCount = results.matched ? results.matched.length : 0;
+    const unmatchedCount = results.unmatched ? results.unmatched.length : 0;
+    const totalCount = matchedCount + unmatchedCount;
+    
+    // 获取去重的未匹配皮肤名字
+    const unmatchedSkinNames = this.getUniqueUnmatchedSkinNames(results.unmatched);
+    
+    // 判断是否有未匹配的皮肤
+    const hasUnmatched = unmatchedCount > 0;
+    
+    // 创建弹出框内容
+    let popupContent = '';
+    
+    if (hasUnmatched) {
+        // 有未匹配皮肤的情况 - 需要手动关闭
+        popupContent = `
+            <div style="text-align: center; padding: 20px;">
+                <h3 style="color: #dc3545; margin-bottom: 15px;">⚠️ 处理完成（有未匹配皮肤）</h3>
+                <div style="font-size: 16px; margin-bottom: 10px;">
+                    <strong>处理结果汇总：</strong>
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>总皮肤数量：</span>
+                        <span style="font-weight: bold;">${totalCount}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: #28a745;">✅ 匹配成功：</span>
+                        <span style="color: #28a745; font-weight: bold;">${matchedCount}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: #dc3545;">❌ 未匹配：</span>
+                        <span style="color: #dc3545; font-weight: bold;">${unmatchedCount}</span>
+                    </div>
+                </div>
+                <div style="text-align: left; margin-bottom: 15px;">
+                    <div style="color: #dc3545; font-weight: bold; margin-bottom: 8px;">未匹配皮肤：</div>
+                    <div style="max-height: 200px; overflow-y: auto; background: #fff5f5; padding: 15px; border-radius: 6px; font-size: 14px; line-height: 1.4;">
+                        ${unmatchedSkinNames.map(name => `<div style="margin-bottom: 6px; word-break: break-word; white-space: normal;">• ${name}</div>`).join('')}
+                    </div>
+                </div>
+                <div style="font-size: 14px; color: #6c757d; margin-bottom: 15px;">
+                    未匹配的皮肤名字可以反馈一下
+                </div>
+                <div style="font-size: 12px; color: #6c757d;">
+                    点击任意区域外关闭提示框
+                </div>
+            </div>
+        `;
+    } else {
+        // 全部匹配成功的情况 - 2秒自动关闭
+        popupContent = `
+            <div style="text-align: center; padding: 20px;">
+                <h3 style="color: #28a745; margin-bottom: 15px;">✅ 处理完成（全部匹配成功）</h3>
+                <div style="font-size: 16px; margin-bottom: 10px;">
+                    <strong>处理结果汇总：</strong>
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>总皮肤数量：</span>
+                        <span style="font-weight: bold;">${totalCount}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #28a745;">✅ 匹配成功：</span>
+                        <span style="color: #28a745; font-weight: bold;">${matchedCount}</span>
+                    </div>
+                </div>
+                <div style="font-size: 12px; color: #6c757d;">
+                    点击任意区域外关闭提示框
+                </div>
+            </div>
+        `;
+    }
+    
+    // 创建弹出框
+    const popup = document.createElement('div');
+    popup.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+    `;
+    
+    popup.innerHTML = `
+        <div style="
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 90%;
+            animation: fadeIn 0.3s ease;
+        ">
+            ${popupContent}
+        </div>
+    `;
+    
+    // 添加淡入动画
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // 点击背景关闭（只有有未匹配皮肤时才允许点击背景关闭）
+    if (hasUnmatched) {
+        popup.addEventListener('click', function(e) {
+            if (e.target === popup) {
+                popup.remove();
+            }
+        });
+    }
+    
+    // 添加到页面
+    document.body.appendChild(popup);
+    
+    // 统一关闭方式：点击背景关闭
+    popup.addEventListener('click', function(e) {
+        if (e.target === popup) {
+            popup.remove();
+        }
+    });
+};
+
+// 获取去重的未匹配皮肤名字
+UserInventoryEnhanced.getUniqueUnmatchedSkinNames = function(unmatchedSkins) {
+    if (!unmatchedSkins || unmatchedSkins.length === 0) {
+        return [];
+    }
+    
+    // 提取皮肤名字并去重
+    const skinNames = unmatchedSkins.map(skin => {
+        // 直接从 originalName 属性获取完整的皮肤名字
+        if (skin.originalName) {
+            return skin.originalName;
+        }
+        
+        // 如果 originalName 不存在，尝试 processedName
+        if (skin.processedName) {
+            return skin.processedName;
+        }
+        
+        // 如果都没有，返回未知皮肤
+        return '未知皮肤';
+    });
+    
+    // 去重
+    return [...new Set(skinNames)];
+};
