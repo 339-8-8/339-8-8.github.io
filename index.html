@@ -43,7 +43,7 @@
                 <div class="section">
                     <div class="section-title">📏 输入磨损值</div>
                     <div class="wear-section">
-                        <input type="number" class="wear-input" id="wearInput" placeholder="0.000" step="0.001" min="0" max="1">
+                        <input type="number" class="wear-input" id="wearInput" placeholder="0.150" step="0.001" min="0" max="1" value="0.150">
                         <div class="wear-quick-buttons">
                             <button class="wear-quick-btn" data-value="0.07">0.07</button>
                             <button class="wear-quick-btn" data-value="0.15">0.15</button>
@@ -70,106 +70,120 @@
                     <div class="section-title">
                         📋 数据处理
                         <span class="help-icon" id="helpIcon" title="点击查看使用说明">?</span>
+                        <button class="section-toggle" id="dataProcessToggle">▼</button>
                     </div>
                     
-                    <div class="paste-section">
-                        <div class="paste-input-row">
-                            <div class="paste-textarea-container">
-                                <textarea class="paste-textarea" id="pasteTextarea" placeholder="粘贴数据..."></textarea>
+                    <div class="section-content" id="dataProcessContent">
+                        <div class="paste-section">
+                            <div class="paste-input-row">
+                                <div class="paste-textarea-container">
+                                    <textarea class="paste-textarea" id="pasteTextarea" placeholder="粘贴数据..."></textarea>
+                                </div>
+                                <div class="paste-button-container">
+                                    <button class="process-btn" id="processBtn">🔍 处理</button>
+                                    <div class="process-status" id="processStatus" style="display: none;">
+                                        <div class="status-info">
+                                            <span class="status-text" id="statusText">等待处理...</span>
+                                            <span class="status-count" id="statusCount"></span>
+                                        </div>
+                                        <div class="progress-bar" id="progressBar">
+                                            <div class="progress-fill" id="progressFill"></div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="paste-button-container">
-                                <button class="process-btn" id="processBtn">🔍 处理</button>
-                                <div class="process-status" id="processStatus" style="display: none;">
-                                    <div class="status-info">
-                                        <span class="status-text" id="statusText">等待处理...</span>
-                                        <span class="status-count" id="statusCount"></span>
+                            
+                            <div class="paste-results" id="pasteResults" style="display: none;">
+                                <div class="results-header">
+                                    <div class="results-title">📊 处理结果</div>
+                                </div>
+                                <div class="results-content" id="resultsContent">
+                                    <div class="summary-section-compact" id="summarySectionCompact">
+                                        <div class="summary-content-compact" id="summaryContentCompact">
+                                            请先处理皮肤数据
+                                        </div>
                                     </div>
-                                    <div class="progress-bar" id="progressBar">
-                                        <div class="progress-fill" id="progressFill"></div>
+                                    <div class="unmatched-section" id="unmatchedSection" style="display: none;">
+                                        <div class="unmatched-title">❌ 未匹配皮肤</div>
+                                        <div class="unmatched-list" id="unmatchedList"></div>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title matched-title">
+                        📦 皮肤库存
+                        <span class="inventory-count" id="inventoryCount">0</span>
+                        <button class="section-toggle" id="inventoryToggle">▼</button>
+                    </div>
+                    
+                    <div class="section-content" id="inventoryContent">
+                        <!-- 筛选区域 -->
+                        <div class="filter-section" id="filterSection" style="display: none;">
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label class="filter-label">选择武器箱</label>
+                                    <select class="filter-select" id="crateSelect">
+                                        <option value="">全部武器箱</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label class="filter-label">选择皮肤级别</label>
+                                    <select class="filter-select" id="gradeSelect">
+                                        <option value="">全部级别</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label class="filter-label">选择皮肤</label>
+                                    <select class="filter-select" id="skinSelect">
+                                        <option value="">全部皮肤</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="paste-results" id="pasteResults" style="display: none;">
-                            <div class="results-header">
-                                <div class="results-title">📊 处理结果</div>
-                                <button class="results-toggle" id="resultsToggle">▼</button>
-                            </div>
-                            <div class="results-content" id="resultsContent">
-                                <div class="summary-section-compact" id="summarySectionCompact">
-                                    <div class="summary-content-compact" id="summaryContentCompact">
-                                        请先处理皮肤数据
-                                    </div>
-                                </div>
-                                <div class="unmatched-section" id="unmatchedSection" style="display: none;">
-                                    <div class="unmatched-title">❌ 未匹配皮肤</div>
-                                    <div class="unmatched-list" id="unmatchedList"></div>
-                                </div>
-                            </div>
+                        <div class="import-results" id="importResults">
+                            <div class="no-data">请先处理皮肤数据</div>
                         </div>
-                    </div>
-
-                    <div class="section-title matched-title">
-                        📦 皮肤库存
-                        <span class="inventory-count" id="inventoryCount">0</span>
-                    </div>
-                    
-                    <!-- 测试按钮 -->
-                    <div class="test-button-container" style="padding: 0 16px 16px;">
-                        <button class="test-button" id="testPopupBtn">🧪 测试弹出窗口</button>
-                    </div>
-                    
-                    <!-- 筛选区域 -->
-                    <div class="filter-section" id="filterSection" style="display: none;">
-                        <div class="filter-row">
-                            <div class="filter-group">
-                                <label class="filter-label">选择武器箱</label>
-                                <select class="filter-select" id="crateSelect">
-                                    <option value="">全部武器箱</option>
-                                </select>
-                            </div>
-                            <div class="filter-group">
-                                <label class="filter-label">选择皮肤级别</label>
-                                <select class="filter-select" id="gradeSelect">
-                                    <option value="">全部级别</option>
-                                </select>
-                            </div>
-                            <div class="filter-group">
-                                <label class="filter-label">选择皮肤</label>
-                                <select class="filter-select" id="skinSelect">
-                                    <option value="">全部皮肤</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="import-results" id="importResults">
-                        <div class="no-data">请先处理皮肤数据</div>
                     </div>
                     
                     <!-- 一键汰换区域 -->
                     <div class="tradeup-section" id="tradeupSection" style="display: none;">
                         <div class="section-title tradeup-title">🔄 一键汰换</div>
                         <div class="tradeup-inputs">
-                            <div class="tradeup-input-group">
-                                <label class="tradeup-label">目标产物名字</label>
-                                <input type="text" class="tradeup-input" id="targetSkinName" placeholder="输入目标产物名字">
-                            </div>
-                            <div class="tradeup-input-group">
-                                <label class="tradeup-label">目标产物磨损值</label>
-                                <input type="text" class="tradeup-input" id="targetWearValue" placeholder="输入目标产物磨损值">
-                            </div>
-                            <div class="tradeup-input-group">
-                                <label class="tradeup-label">&nbsp;</label>
-                                <button class="tradeup-btn tradeup-btn-fetch" id="tradeupFetchBtn">📋 从左侧获取产物数据</button>
+                            <div class="tradeup-input-row">
+                                <div class="tradeup-input-group">
+                                    <label class="tradeup-label">目标产物名字</label>
+                                    <input type="text" class="tradeup-input" id="targetSkinName" placeholder="输入目标产物名字">
+                                </div>
+                                <div class="tradeup-input-group">
+                                    <label class="tradeup-label">目标产物磨损值</label>
+                                    <input type="text" class="tradeup-input" id="targetWearValue" placeholder="输入目标产物磨损值">
+                                </div>
+                                <div class="tradeup-input-group">
+                                    <label class="tradeup-label">目标产物最低磨损值</label>
+                                    <input type="text" class="tradeup-input" id="targetMinWearValue" placeholder="输入目标产物最低磨损值" value="0.000000">
+                                </div>
                             </div>
                         </div>
+                        
+                        <!-- 保存的信息记录 -->
+                        <div class="tradeup-saved-records" id="tradeupSavedRecords" style="display: none;">
+                            <div class="tradeup-records-title">📋 保存的记录</div>
+                            <div class="tradeup-records-list" id="tradeupRecordsList">
+                                <!-- 保存的记录将通过JavaScript动态生成 -->
+                            </div>
+                        </div>
+                        
                         <div class="tradeup-buttons">
+                            <button class="tradeup-btn tradeup-btn-fetch" id="tradeupFetchBtn">📋 从左侧获取产物数据</button>
+                            <button class="tradeup-btn tradeup-btn-save" id="tradeupSaveBtn">💾 保存记录</button>
                             <button class="tradeup-btn" id="tradeupBtn">执行汰换计算</button>
-                            <button class="tradeup-btn tradeup-btn-confirm" id="tradeupConfirmBtn" style="display: none;">确认并清空</button>
-                            <button class="tradeup-btn tradeup-btn-popup" id="tradeupPopupBtn">🖼️ 显示皮肤</button>
-                            <button class="tradeup-btn tradeup-btn-copy-script" id="tradeupCopyScriptBtn" style="display: none;">📋 复制自动脚本</button>
+                            <button class="tradeup-btn tradeup-btn-confirm" id="tradeupConfirmBtn" disabled>确认并清空</button>
+                            <button class="tradeup-btn tradeup-btn-copy-script" id="tradeupCopyScriptBtn" disabled>📋 复制自动脚本</button>
                         </div>
                         <div class="tradeup-result" id="tradeupResult"></div>
                     </div>
@@ -224,20 +238,53 @@
         </div>
     </div>
     
-    <!-- 汰换皮肤弹出窗口 -->
-    <div class="tradeup-popup" id="tradeupPopup">
-        <div class="tradeup-popup-content">
-            <div class="tradeup-popup-header">
-                <div class="tradeup-popup-title">选择皮肤</div>
-                <button class="tradeup-popup-close" id="tradeupPopupClose">&times;</button>
-            </div>
-            <div class="tradeup-popup-body">
-                <div class="tradeup-popup-left">
-                    <div class="tradeup-popup-skins" id="tradeupPopupSkins"></div>
-                </div>
-                <div class="tradeup-popup-right"></div>
-            </div>
-        </div>
-    </div>
+    <script>
+        // 展开/收起功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const dataProcessToggle = document.getElementById('dataProcessToggle');
+            const inventoryToggle = document.getElementById('inventoryToggle');
+            const dataProcessContent = document.getElementById('dataProcessContent');
+            const inventoryContent = document.getElementById('inventoryContent');
+            
+            // 数据处理版块展开/收起
+            if (dataProcessToggle && dataProcessContent) {
+                dataProcessToggle.addEventListener('click', function() {
+                    const isCollapsed = dataProcessContent.classList.contains('collapsed');
+                    
+                    if (isCollapsed) {
+                        // 展开
+                        dataProcessContent.classList.remove('collapsed');
+                        dataProcessToggle.textContent = '▼';
+                        dataProcessToggle.classList.remove('collapsed');
+                    } else {
+                        // 收起
+                        dataProcessContent.classList.add('collapsed');
+                        dataProcessToggle.textContent = '▶';
+                        dataProcessToggle.classList.add('collapsed');
+                    }
+                });
+            }
+            
+            // 皮肤库存版块展开/收起
+            if (inventoryToggle && inventoryContent) {
+                inventoryToggle.addEventListener('click', function() {
+                    const isCollapsed = inventoryContent.classList.contains('collapsed');
+                    
+                    if (isCollapsed) {
+                        // 展开
+                        inventoryContent.classList.remove('collapsed');
+                        inventoryToggle.textContent = '▼';
+                        inventoryToggle.classList.remove('collapsed');
+                    } else {
+                        // 收起
+                        inventoryContent.classList.add('collapsed');
+                        inventoryToggle.textContent = '▶';
+                        inventoryToggle.classList.add('collapsed');
+                    }
+                });
+            }
+        });
+    </script>
+    
 </body>
 </html>

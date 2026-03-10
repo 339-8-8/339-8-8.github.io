@@ -157,7 +157,6 @@ function renderSkinList() {
     elements.skinList.innerHTML = state.selectedLevel.skins.map(skin => `
         <div class="skin-card ${state.selectedSkin?.id === skin.id ? 'active' : ''}" 
                 onclick="selectSkin(${JSON.stringify(skin).replace(/"/g, '&quot;')})">
-            <div class="skin-image">🔫</div>
             <div class="skin-name">${skin.name}</div>
         </div>
     `).join('');
@@ -195,10 +194,9 @@ function selectSkin(skin) {
     updateWearRange();
     clearResults();
     
-    // 自动设置磨损值为中间值
-    const midWear = (skin.minWear + skin.maxWear) / 2;
-    state.wearValue = midWear;
-    elements.wearInput.value = midWear.toFixed(3);
+    // 自动设置磨损值为0.150
+    state.wearValue = 0.150;
+    elements.wearInput.value = '0.150';
 }
 
 // 更新磨损值范围显示
