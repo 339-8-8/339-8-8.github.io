@@ -1140,7 +1140,6 @@ const UserInventoryEnhanced = {
             if (confirmBtn && copyScriptBtn) {
                 confirmBtn.disabled = true;
                 copyScriptBtn.disabled = true;
-                copyScriptBtn.style.display = 'none';
             }
             
             // 隐藏弹出窗口按钮
@@ -1223,6 +1222,16 @@ const UserInventoryEnhanced = {
         scriptContent += 'move coord1 0.1\n';
         scriptContent += 'wait 1\n\n';
         
+        // 创建即时筛选数据映射
+        const instantFilteredSkinsMap = {};
+        // 为每个皮肤级别创建初始筛选数据（包含所有皮肤）
+        const allGrades = [...new Set(skins.map(skin => skin.grade))];
+        allGrades.forEach(grade => {
+            instantFilteredSkinsMap[grade] = window.originalSkinsData.skins.filter(s => 
+                s.grade === grade
+            );
+        });
+        
         skins.forEach((skin, skinIndex) => {
             const originalPosition = skin.originalPosition || 0;
             if (originalPosition === 0) {
@@ -1238,19 +1247,63 @@ const UserInventoryEnhanced = {
                 return;
             }
             
-            // 先根据皮肤级别筛选originalSkinsData
-            const filteredSkins = window.originalSkinsData.skins.filter(s => 
-                s.grade === skin.grade
-            );
+            // 获取当前皮肤级别的即时筛选数据
+            let instantFilteredSkins = instantFilteredSkinsMap[skin.grade];
+            if (!instantFilteredSkins) {
+                // 如果该级别的筛选数据不存在，重新创建
+                instantFilteredSkins = window.originalSkinsData.skins.filter(s => 
+                    s.grade === skin.grade
+                );
+                instantFilteredSkinsMap[skin.grade] = instantFilteredSkins;
+            }
             
-            const totalSkins = filteredSkins.length;
-            const position = originalPosition;
+            // 计算即时位置
+            let instantPosition;
+            let positionSource = '';
+            
+            // 添加皮肤数据结构调试信息
+            scriptContent += `# 调试: 皮肤${skinIndex + 1} 数据 - name: ${skin.name}, grade: ${skin.grade}, wear: ${skin.wear || '无'}, float: ${skin.float || '无'}\n`;
+            
+            if (skinIndex === 0) {
+                // 序号1使用筛选前的皮肤位置（原始位置）
+                instantPosition = originalPosition;
+                positionSource = '筛选前位置';
+            } else {
+                // 序号2-10使用在当前筛选皮肤数据中的位置
+                // 尝试根据磨损值匹配，如果没有则使用名字匹配
+                let skinIndexInFiltered = -1;
+                
+                if (skin.wear !== undefined) {
+                    // 根据磨损值匹配
+                    skinIndexInFiltered = instantFilteredSkins.findIndex(s => s.wear === skin.wear);
+                } else if (skin.float !== undefined) {
+                    // 根据float值匹配
+                    skinIndexInFiltered = instantFilteredSkins.findIndex(s => s.float === skin.float);
+                } else {
+                    // 回退到名字匹配
+                    skinIndexInFiltered = instantFilteredSkins.findIndex(s => s.name === skin.name);
+                }
+                
+                if (skinIndexInFiltered === -1) {
+                    // 如果在筛选数据中找不到皮肤，使用原始位置作为备用方案
+                    instantPosition = originalPosition;
+                    positionSource = '原始位置(备用)';
+                } else {
+                    instantPosition = skinIndexInFiltered + 1;
+                    positionSource = '即时位置';
+                }
+            }
             
             // 计算16个为一组
             const groupSize = 16;
-            const totalGroups = Math.ceil(totalSkins / groupSize);
-            const skinGroup = Math.ceil(position / groupSize);
+            // 序号1使用原始皮肤总数，序号2-10使用即时筛选数据数量
+            const useTotalSkins = skinIndex === 0 ? window.originalSkinsData.skins.length : instantFilteredSkins.length;
+            const totalGroups = Math.ceil(useTotalSkins / groupSize);
+            const skinGroup = Math.ceil(instantPosition / groupSize);
             const isLastGroup = skinGroup === totalGroups;
+            
+            // 调试信息
+            scriptContent += `# 调试: 序号${skinIndex + 1} 即时位置=${instantPosition}(${positionSource}), 使用总数=${useTotalSkins}, 总组数=${totalGroups}, 皮肤组=${skinGroup}, 是否最后一组=${isLastGroup}\n`;
             
             if (isLastGroup) {
                 // 最后一组的情况
@@ -1258,10 +1311,10 @@ const UserInventoryEnhanced = {
                 scriptContent += 'wait 0.5\n';
                 
                 // 计算最后一组的皮肤数量
-                const skinsInLastGroup = totalSkins - (totalGroups - 1) * groupSize;
+                const skinsInLastGroup = useTotalSkins - (totalGroups - 1) * groupSize;
                 
                 // 计算皮肤在组内的位置
-                const positionInGroup = position - (totalGroups - 1) * groupSize;
+                const positionInGroup = instantPosition - (totalGroups - 1) * groupSize;
                 
                 // 根据最后一组的数量计算偏移
                 let offset = 0;
@@ -1275,9 +1328,11 @@ const UserInventoryEnhanced = {
                     offset = 12;
                 }
                 
+                // 修复坐标计算：从1开始计数，而不是从0
                 const finalCoordPosition = positionInGroup + offset;
                 const coordNum = Math.min(Math.max(finalCoordPosition, 1), 16);
                 
+                scriptContent += `# 调试: 最后一组皮肤数量=${skinsInLastGroup}, 组内位置=${positionInGroup}, 偏移=${offset}, 最终坐标=${coordNum}\n`;
                 scriptContent += `move coord${coordNum} 0.1\n`;
                 scriptContent += 'click left 1\n';
                 scriptContent += 'wait 0.5\n';
@@ -1285,7 +1340,7 @@ const UserInventoryEnhanced = {
                 scriptContent += 'wait 0.5\n';
             } else {
                 // 不是最后一组的情况
-                let remaining = position;
+                let remaining = instantPosition;
                 
                 // 收集所有wheel命令
                 const wheelCommands = [];
@@ -1349,7 +1404,10 @@ const UserInventoryEnhanced = {
                 }
                 
                 if (remaining > 0) {
-                    const coordNum = remaining;
+                    // 修复：对于非最后一组，坐标应该是皮肤在组内的位置
+                    const positionInGroup = (instantPosition - 1) % groupSize + 1;
+                    const coordNum = positionInGroup;
+                    scriptContent += `# 调试: 非最后一组, 组内位置=${positionInGroup}, 最终坐标=${coordNum}\n`;
                     scriptContent += `move coord${coordNum} 0.1\n`;
                 }
                 
@@ -1358,8 +1416,22 @@ const UserInventoryEnhanced = {
                 scriptContent += 'wheel down 60000\n';
                 scriptContent += 'wait 0.5\n';
             }
-            
-            scriptContent += '\n';
+        
+        // 从即时筛选数据中删除当前皮肤
+        if (instantFilteredSkinsMap[skin.grade]) {
+            // 找到并删除当前皮肤，根据磨损值匹配
+            instantFilteredSkinsMap[skin.grade] = instantFilteredSkinsMap[skin.grade].filter(s => {
+                if (skin.wear !== undefined && s.wear !== undefined) {
+                    return s.wear !== skin.wear;
+                } else if (skin.float !== undefined && s.float !== undefined) {
+                    return s.float !== skin.float;
+                } else {
+                    return s.name !== skin.name;
+                }
+            });
+        }
+        
+        scriptContent += '\n';
         });
         
         // 添加固定操作 - 最后确认

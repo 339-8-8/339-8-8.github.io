@@ -8,14 +8,20 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>CS:GO 反向汰换模拟</h1>
-            <p>数据仅供参考！如果需要读取库存和一键汰换功能请在电脑上打开网页。有什么问题和建议可以在小黑盒搜索“CS炼金反向汰换模拟”，在帖子下面评论反馈。</p>
-        </div>
-
         <div class="main-content">
+            <!-- 左侧容器切换按钮 -->
+            <button class="sidebar-toggle" id="sidebarToggle" title="显示/隐藏侧边栏">◀</button>
+            
             <!-- 左侧容器：主要功能 (40%) -->
-            <div class="left-container">
+            <div class="left-container" id="leftContainer">
+                <div class="section tool-info">
+                    <div class="section-title">CS:GO 反向汰换模拟</div>
+                    <div class="tool-description">
+                        <p>数据仅供参考！如果需要读取库存和一键汰换功能请在电脑上打开网页。</p>
+                        <p>有什么问题和建议可以在小黑盒搜索"CS炼金反向汰换模拟"，在帖子下面评论反馈。</p>
+                    </div>
+                </div>
+                
                 <div class="section">
                     <div class="section-title">🎁 选择武器箱</div>
                     
@@ -241,6 +247,28 @@
     <script>
         // 展开/收起功能
         document.addEventListener('DOMContentLoaded', function() {
+            // 左侧容器显示/隐藏功能
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const leftContainer = document.getElementById('leftContainer');
+            
+            if (sidebarToggle && leftContainer) {
+                sidebarToggle.addEventListener('click', function() {
+                    const isCollapsed = leftContainer.classList.contains('collapsed');
+                    
+                    if (isCollapsed) {
+                        // 显示左侧容器
+                        leftContainer.classList.remove('collapsed');
+                        sidebarToggle.textContent = '◀';
+                        sidebarToggle.classList.remove('collapsed');
+                    } else {
+                        // 隐藏左侧容器
+                        leftContainer.classList.add('collapsed');
+                        sidebarToggle.textContent = '▶';
+                        sidebarToggle.classList.add('collapsed');
+                    }
+                });
+            }
+            
             const dataProcessToggle = document.getElementById('dataProcessToggle');
             const inventoryToggle = document.getElementById('inventoryToggle');
             const dataProcessContent = document.getElementById('dataProcessContent');
