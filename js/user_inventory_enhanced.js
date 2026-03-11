@@ -2413,7 +2413,7 @@ UserInventoryEnhanced.optimizeWearValue = function(currentGroup, allSkins, targe
     // 按武器箱分组
     const currentQuantities = this.countSkinsByCrate(bestGroup);
     
-    // 优先尝试用高磨损值皮肤替换（使总和更接近目标）
+    // 第一阶段：优先尝试用高磨损值皮肤替换（使总和更接近目标）
     let improved = true;
     let iterations = 0;
     
@@ -2460,11 +2460,11 @@ UserInventoryEnhanced.optimizeWearValue = function(currentGroup, allSkins, targe
         }
     }
     
-    // 如果替换后仍低于目标，尝试精细调整（用稍低的替换稍高的，寻找更接近的组合）
+    // 第二阶段：如果替换后仍低于目标，尝试更精细的调整
     if (bestSum < targetConvertedSum) {
         let bestDiff = targetConvertedSum - bestSum;
         
-        // 遍历所有可能的替换组合
+        // 方法1：遍历所有可能的替换组合
         for (let i = 0; i < bestGroup.length; i++) {
             const currentSkin = bestGroup[i];
             
@@ -2487,6 +2487,79 @@ UserInventoryEnhanced.optimizeWearValue = function(currentGroup, allSkins, targe
                         bestDiff = diff;
                         bestGroup = tempGroup;
                         bestSum = tempSum;
+                    }
+                }
+            }
+        }
+        
+        // 方法2：尝试多皮肤组合替换（如果单次替换效果不佳）
+        if (bestDiff > 0.01) { // 如果差距还比较大
+            // 尝试同时替换多个皮肤
+            for (let i = 0; i < bestGroup.length - 1; i++) {
+                for (let j = i + 1; j < bestGroup.length; j++) {
+                    const skin1 = bestGroup[i];
+                    const skin2 = bestGroup[j];
+                    
+                    // 获取两个武器箱中可用的高磨损值皮肤
+                    const availableSkins1 = allSkins.filter(s => 
+                        s.crate === skin1.crate && !bestGroup.includes(s)
+                    ).sort((a, b) => b.convertedWear - a.convertedWear);
+                    
+                    const availableSkins2 = allSkins.filter(s => 
+                        s.crate === skin2.crate && !bestGroup.includes(s)
+                    ).sort((a, b) => b.convertedWear - a.convertedWear);
+                    
+                    if (availableSkins1.length === 0 || availableSkins2.length === 0) continue;
+                    
+                    // 尝试用两个高磨损值皮肤替换
+                    for (const newSkin1 of availableSkins1.slice(0, 3)) { // 只尝试前3个最高磨损的
+                        for (const newSkin2 of availableSkins2.slice(0, 3)) {
+                            const tempGroup = [...bestGroup];
+                            tempGroup[i] = newSkin1;
+                            tempGroup[j] = newSkin2;
+                            
+                            const tempSum = tempGroup.reduce((sum, skin) => sum + skin.convertedWear, 0);
+                            
+                            if (tempSum <= targetConvertedSum) {
+                                const diff = targetConvertedSum - tempSum;
+                                if (diff < bestDiff) {
+                                    bestDiff = diff;
+                                    bestGroup = tempGroup;
+                                    bestSum = tempSum;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 方法3：如果还有差距，尝试更激进的替换策略
+        if (bestDiff > 0.001) {
+            // 按武器箱分组，对每个武器箱尝试所有可能的组合
+            for (const crate in currentQuantities) {
+                const crateSkins = bestGroup.filter(s => s.crate === crate);
+                const availableSkins = allSkins.filter(s => 
+                    s.crate === crate && !bestGroup.includes(s)
+                ).sort((a, b) => b.convertedWear - a.convertedWear);
+                
+                if (availableSkins.length === 0) continue;
+                
+                // 尝试替换该武器箱中的所有皮肤
+                const tempGroup = bestGroup.filter(s => s.crate !== crate);
+                const newCrateSkins = availableSkins.slice(0, crateSkins.length);
+                
+                if (newCrateSkins.length === crateSkins.length) {
+                    const combinedGroup = [...tempGroup, ...newCrateSkins];
+                    const tempSum = combinedGroup.reduce((sum, skin) => sum + skin.convertedWear, 0);
+                    
+                    if (tempSum <= targetConvertedSum) {
+                        const diff = targetConvertedSum - tempSum;
+                        if (diff < bestDiff) {
+                            bestDiff = diff;
+                            bestGroup = combinedGroup;
+                            bestSum = tempSum;
+                        }
                     }
                 }
             }
