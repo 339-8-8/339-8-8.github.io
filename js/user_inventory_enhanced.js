@@ -810,27 +810,18 @@ const UserInventoryEnhanced = {
         if (!targetSkinName) {
             resultDiv.className = 'tradeup-result error';
             resultDiv.innerHTML = '❌ 请输入目标产物名字';
-            setTimeout(() => {
-                resultDiv.classList.add('show');
-            }, 10);
             return;
         }
         
         if (isNaN(targetWearValue)) {
             resultDiv.className = 'tradeup-result error';
             resultDiv.innerHTML = '❌ 请输入有效的目标产物磨损值';
-            setTimeout(() => {
-                resultDiv.classList.add('show');
-            }, 10);
             return;
         }
         
         if (isNaN(targetMinWearValue)) {
             resultDiv.className = 'tradeup-result error';
             resultDiv.innerHTML = '❌ 请输入有效的目标产物最低磨损值';
-            setTimeout(() => {
-                resultDiv.classList.add('show');
-            }, 10);
             return;
         }
         
@@ -857,9 +848,6 @@ const UserInventoryEnhanced = {
         if (!targetSkin) {
             resultDiv.className = 'tradeup-result error';
             resultDiv.innerHTML = '❌ 未找到目标产物: ' + targetSkinName;
-            setTimeout(() => {
-                resultDiv.classList.add('show');
-            }, 10);
             return;
         }
         
@@ -867,22 +855,26 @@ const UserInventoryEnhanced = {
         if (!lowerGrade) {
             resultDiv.className = 'tradeup-result error';
             resultDiv.innerHTML = '❌ 该目标产物没有下级皮肤';
-            setTimeout(() => {
-                resultDiv.classList.add('show');
-            }, 10);
             return;
         }
         
         if (targetWearValue < targetSkin.minWear || targetWearValue > targetSkin.maxWear) {
             resultDiv.className = 'tradeup-result error';
             resultDiv.innerHTML = `❌ 目标产物磨损值超出范围 (${targetSkin.minWear} - ${targetSkin.maxWear})`;
-            setTimeout(() => {
-                resultDiv.classList.add('show');
-            }, 10);
             return;
         }
         
         const targetConvertedSum = this.calculateConvertedWear(targetWearValue, targetSkin.minWear, targetSkin.maxWear) * 10;
+        
+        // 检查目标产物武器箱是否被选中
+        if (!this.selectedCrates[targetSkin.crate]) {
+            resultDiv.className = 'tradeup-result error';
+            resultDiv.innerHTML = `❌ 目标产物"${targetSkinName}"的武器箱"${targetSkin.crate}"未被选中，请先选中该武器箱`;
+            return;
+        }
+        
+        // 显示/隐藏武器箱数量设置区域
+        this.toggleCrateQuantitySection();
         
         const candidateSkins = filteredSkins.filter(skin => {
             return skin.grade === lowerGrade && this.selectedCrates[skin.crate];
@@ -924,25 +916,54 @@ const UserInventoryEnhanced = {
         candidateSkins.sort((a, b) => b.originalPosition - a.originalPosition);
         
         let bestResult = null;
-        let bestSum = -1;
         
-        // 遍历所有可能的10个皮肤组合
-        for (let i = 0; i <= candidateSkins.length - 10; i++) {
-            const initialGroup = candidateSkins.slice(i, i + 10);
-            const optimized = this.greedyOptimize(initialGroup, candidateSkins, targetConvertedSum);
+        // 在执行汰换计算前保存用户设置的皮肤数量
+        const originalCrateQuantities = {...this.crateQuantities};
+        
+        // 根据选择情况调用不同的汰换算法
+        const uniqueCrates = [...new Set(candidateSkins.map(skin => skin.crate))];
+        const selectedCrates = uniqueCrates.filter(crate => this.selectedCrates[crate]);
+        
+        if (selectedCrates.length === 1) {
+            // 只选中了目标产物的武器箱，使用原始算法
+            bestResult = this.executeTradeupOriginal(candidateSkins, targetConvertedSum);
+        } else {
+            // 选中了多个武器箱，使用带数量控制的新算法
+            const quantityResult = this.executeTradeupWithQuantityControl(candidateSkins, targetConvertedSum);
             
-            if (optimized.sum > bestSum && optimized.sum <= targetConvertedSum) {
-                bestSum = optimized.sum;
-                bestResult = optimized;
+            // 处理算法返回的错误信息
+            if (quantityResult && quantityResult.error) {
+                resultDiv.className = 'tradeup-result error';
+                resultDiv.innerHTML = quantityResult.message;
+                return;
             }
+            
+            bestResult = quantityResult;
         }
+        
+        // 汰换计算完成后，恢复用户设置的皮肤数量
+        this.crateQuantities = {...originalCrateQuantities};
+        this.updateCrateQuantityUI();
         
         if (!bestResult) {
             resultDiv.className = 'tradeup-result error';
-            resultDiv.innerHTML = '❌ 无法找到符合条件的皮肤组合';
-            setTimeout(() => {
-                resultDiv.classList.add('show');
-            }, 10);
+            
+            // 提供更详细的错误信息
+            const selectedCrates = uniqueCrates.filter(crate => this.selectedCrates[crate]);
+            const crateCount = selectedCrates.length;
+            
+            let errorMessage = '❌ 无法找到符合条件的皮肤组合<br>';
+            errorMessage += `选中的武器箱数量: ${crateCount}<br>`;
+            
+            if (crateCount === 1) {
+                errorMessage += '使用原始算法计算，可能库存中下级皮肤磨损值过高';
+            } else {
+                errorMessage += '使用数量控制算法计算，可能原因：<br>';
+                errorMessage += '• 各武器箱可用皮肤数量不足<br>';
+                errorMessage += '• 皮肤组合无法达到目标磨损值要求';
+            }
+            
+            resultDiv.innerHTML = errorMessage;
             return;
         }
         
@@ -951,18 +972,12 @@ const UserInventoryEnhanced = {
         if (resultingWear > targetWearValue) {
             resultDiv.className = 'tradeup-result error';
             resultDiv.innerHTML = `❌ 汰换结果超出目标磨损值 (目标: ${targetWearValue.toFixed(6)}, 结果: ${resultingWear.toFixed(6)})`;
-            setTimeout(() => {
-                resultDiv.classList.add('show');
-            }, 10);
             return;
         }
         
         if (resultingWear < targetMinWearValue) {
             resultDiv.className = 'tradeup-result error';
             resultDiv.innerHTML = `❌ 汰换结果低于目标产物最低磨损值 (最低: ${targetMinWearValue.toFixed(6)}, 结果: ${resultingWear.toFixed(6)})`;
-            setTimeout(() => {
-                resultDiv.classList.add('show');
-            }, 10);
             return;
         }
         
@@ -1030,9 +1045,7 @@ const UserInventoryEnhanced = {
         `;
         
         // 添加动画效果
-        setTimeout(() => {
-            resultDiv.classList.add('show');
-        }, 10);
+        resultDiv.classList.add('show');
         
         // 保存当前结果并启用确认和复制按钮
         this.currentTradeupResult = {
@@ -1630,6 +1643,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+
+    
     const tradeupConfirmBtn = document.getElementById('tradeupConfirmBtn');
     if (tradeupConfirmBtn) {
         tradeupConfirmBtn.addEventListener('click', function() {
@@ -1912,16 +1927,7 @@ UserInventoryEnhanced.getUniqueUnmatchedSkinNames = function(unmatchedSkins) {
 
 // 初始化武器箱/收藏品选择功能
 UserInventoryEnhanced.initCrateSelection = function() {
-    const filterAllBtn = document.getElementById('filterAllBtn');
-    const filterNoneBtn = document.getElementById('filterNoneBtn');
-    
-    if (filterAllBtn) {
-        filterAllBtn.addEventListener('click', () => this.selectAllCrates());
-    }
-    
-    if (filterNoneBtn) {
-        filterNoneBtn.addEventListener('click', () => this.deselectAllCrates());
-    }
+    // 全选和取消全选功能已移除
 };
 
 // 渲染武器箱/收藏品列表
@@ -1940,7 +1946,7 @@ UserInventoryEnhanced.renderCrateList = function() {
         if (this.selectedCrates.hasOwnProperty(crate)) {
             newSelectedCrates[crate] = this.selectedCrates[crate];
         } else {
-            newSelectedCrates[crate] = true; // 新出现的默认选中
+            newSelectedCrates[crate] = false; // 新出现的默认不选中
         }
     });
     this.selectedCrates = newSelectedCrates;
@@ -1979,9 +1985,6 @@ UserInventoryEnhanced.renderCrateList = function() {
         
         crateList.appendChild(crateItem);
     });
-    
-    // 更新按钮状态
-    this.updateFilterButtons();
 };
 
 // 切换武器箱/收藏品选择状态
@@ -1997,59 +2000,15 @@ UserInventoryEnhanced.toggleCrateSelection = function(crate) {
         }
     }
     
-    this.updateFilterButtons();
+    // 更新武器箱数量设置区域
+    this.toggleCrateQuantitySection();
 };
 
-// 全选武器箱/收藏品
-UserInventoryEnhanced.selectAllCrates = function() {
-    if (!this.processedData || !this.processedData.matched) return;
-    
-    const uniqueCrates = [...new Set(this.processedData.matched.map(skin => skin.crate))];
-    uniqueCrates.forEach(crate => {
-        this.selectedCrates[crate] = true;
-    });
-    
-    document.querySelectorAll('.crate-item').forEach(item => {
-        item.classList.add('selected');
-    });
-    
-    this.updateFilterButtons();
-};
 
-// 取消全选武器箱/收藏品
-UserInventoryEnhanced.deselectAllCrates = function() {
-    if (!this.processedData || !this.processedData.matched) return;
-    
-    const uniqueCrates = [...new Set(this.processedData.matched.map(skin => skin.crate))];
-    uniqueCrates.forEach(crate => {
-        this.selectedCrates[crate] = false;
-    });
-    
-    document.querySelectorAll('.crate-item').forEach(item => {
-        item.classList.remove('selected');
-    });
-    
-    this.updateFilterButtons();
-};
 
-// 更新筛选按钮状态
-UserInventoryEnhanced.updateFilterButtons = function() {
-    const filterAllBtn = document.getElementById('filterAllBtn');
-    const filterNoneBtn = document.getElementById('filterNoneBtn');
-    
-    if (!this.processedData || !this.processedData.matched) return;
-    
-    const uniqueCrates = [...new Set(this.processedData.matched.map(skin => skin.crate))];
-    const selectedCount = Object.values(this.selectedCrates).filter(v => v).length;
-    
-    if (filterAllBtn) {
-        filterAllBtn.classList.toggle('active', selectedCount === uniqueCrates.length);
-    }
-    
-    if (filterNoneBtn) {
-        filterNoneBtn.classList.toggle('active', selectedCount === 0);
-    }
-};
+
+
+
 
 // 获取选中的武器箱/收藏品的皮肤数据
 UserInventoryEnhanced.getFilteredSkins = function() {
@@ -2067,5 +2026,595 @@ UserInventoryEnhanced.getCrateColorClass = function(crate, isResult = false) {
     if (this.crateColorMap[crate]) {
         return isResult ? this.crateColorMap[crate].resultColor : this.crateColorMap[crate].crateColor;
     }
-    return '';
+    return isResult ? 'tradeup-result-crate-1' : 'crate-color-1';
+};
+
+
+
+// 显示/隐藏武器箱数量设置区域
+UserInventoryEnhanced.toggleCrateQuantitySection = function() {
+    const quantitySection = document.getElementById('crateQuantitySection');
+    const quantityList = document.getElementById('crateQuantityList');
+    
+    if (!this.processedData || !this.processedData.matched) return;
+    
+    const uniqueCrates = [...new Set(this.processedData.matched.map(skin => skin.crate))];
+    const selectedCrates = uniqueCrates.filter(crate => this.selectedCrates[crate]);
+    
+    // 如果选中了多个武器箱，显示数量设置区域
+    if (selectedCrates.length > 1) {
+        quantitySection.style.display = 'block';
+        this.renderCrateQuantityList(selectedCrates);
+    } else {
+        quantitySection.style.display = 'none';
+    }
+};
+
+// 渲染武器箱数量设置列表
+UserInventoryEnhanced.renderCrateQuantityList = function(selectedCrates) {
+    const quantityList = document.getElementById('crateQuantityList');
+    if (!quantityList) return;
+    
+    quantityList.innerHTML = '';
+    
+    // 获取目标产物武器箱
+    const targetSkinName = document.getElementById('targetSkinName').value.trim();
+    const targetSkin = this.findTargetSkin(targetSkinName);
+    const targetCrate = targetSkin ? targetSkin.crate : null;
+    
+    // 计算默认分配（目标产物武器箱优先分配）
+    const defaultQuantities = this.calculateDefaultQuantities(selectedCrates, targetCrate);
+    
+    // 检查当前选中的武器箱是否都在crateQuantities中
+    let hasValidUserSetting = false;
+    if (this.crateQuantities) {
+        hasValidUserSetting = selectedCrates.every(crate => 
+            this.crateQuantities[crate] !== undefined && this.crateQuantities[crate] > 0
+        );
+    }
+    
+    // 更新crateQuantities，只保留当前选中武器箱的数据
+    const newCrateQuantities = {};
+    selectedCrates.forEach(crate => {
+        // 如果用户设置有效且有值，使用用户设置的值；否则使用默认值
+        if (hasValidUserSetting && this.crateQuantities && this.crateQuantities[crate] > 0) {
+            newCrateQuantities[crate] = this.crateQuantities[crate];
+        } else {
+            newCrateQuantities[crate] = defaultQuantities[crate] || 1;
+        }
+    });
+    this.crateQuantities = newCrateQuantities;
+    
+    selectedCrates.forEach(crate => {
+        const quantityItem = document.createElement('div');
+        quantityItem.className = 'crate-quantity-item';
+        
+        // 获取该武器箱的可用皮肤数量
+        const availableSkins = this.processedData.matched.filter(skin => 
+            skin.crate === crate && skin.grade === this.getLowerGrade(this.findTargetSkin(targetSkinName).grade)
+        ).length;
+        
+        const displayValue = this.crateQuantities[crate] || 1;
+        
+        quantityItem.innerHTML = `
+            <div class="crate-quantity-name">${crate}</div>
+            <div class="crate-quantity-controls">
+                <button class="crate-quantity-btn" onclick="UserInventoryEnhanced.adjustCrateQuantity('${crate}', -1)">-</button>
+                <span class="crate-quantity-value" data-crate="${crate}">${displayValue}</span>
+                <button class="crate-quantity-btn" onclick="UserInventoryEnhanced.adjustCrateQuantity('${crate}', 1)">+</button>
+            </div>
+        `;
+        
+        quantityList.appendChild(quantityItem);
+    });
+    
+    // 计算并添加总和显示
+    const total = Object.values(this.crateQuantities).reduce((sum, q) => sum + q, 0);
+    const totalItem = document.createElement('div');
+    totalItem.className = 'crate-quantity-total';
+    totalItem.innerHTML = `
+        <div class="crate-quantity-name">总计</div>
+        <div class="crate-quantity-sum">${total}</div>
+    `;
+    quantityList.appendChild(totalItem);
+};
+
+// 计算默认数量分配
+UserInventoryEnhanced.calculateDefaultQuantities = function(selectedCrates, targetCrate) {
+    const quantities = {};
+    const crateCount = selectedCrates.length;
+    
+    if (crateCount === 1) {
+        // 只有一个武器箱，分配10个皮肤
+        quantities[selectedCrates[0]] = 10;
+    } else if (crateCount === 2) {
+        // 两个武器箱，目标产物武器箱优先分配更多
+        if (targetCrate && selectedCrates.includes(targetCrate)) {
+            quantities[targetCrate] = 7;
+            const otherCrate = selectedCrates.find(c => c !== targetCrate);
+            quantities[otherCrate] = 3;
+        } else {
+            // 没有目标产物武器箱，平均分配
+            quantities[selectedCrates[0]] = 5;
+            quantities[selectedCrates[1]] = 5;
+        }
+    } else {
+        // 多个武器箱，目标产物武器箱优先分配
+        let remaining = 10;
+        
+        // 先给目标产物武器箱分配
+        if (targetCrate && selectedCrates.includes(targetCrate)) {
+            quantities[targetCrate] = Math.min(4, remaining);
+            remaining -= quantities[targetCrate];
+        }
+        
+        // 给其他武器箱平均分配剩余数量
+        const otherCrates = selectedCrates.filter(c => c !== targetCrate);
+        const otherCount = otherCrates.length;
+        
+        if (otherCount > 0) {
+            const baseAmount = Math.floor(remaining / otherCount);
+            let extra = remaining % otherCount;
+            
+            otherCrates.forEach(crate => {
+                quantities[crate] = baseAmount + (extra > 0 ? 1 : 0);
+                if (extra > 0) extra--;
+            });
+        }
+    }
+    
+    return quantities;
+};
+
+// 调整武器箱参与皮肤数量（加减号按钮）
+UserInventoryEnhanced.adjustCrateQuantity = function(crate, delta) {
+    if (!this.crateQuantities) {
+        this.crateQuantities = {};
+    }
+    
+    const targetSkinName = document.getElementById('targetSkinName').value.trim();
+    const targetSkin = this.findTargetSkin(targetSkinName);
+    const targetCrate = targetSkin ? targetSkin.crate : null;
+    
+    // 获取当前选中的武器箱
+    const selectedCrates = Object.keys(this.selectedCrates).filter(c => this.selectedCrates[c]);
+    const otherCrates = selectedCrates.filter(c => c !== crate);
+    
+    // 获取当前值
+    const currentValue = this.crateQuantities[crate] || 0;
+    let newValue = currentValue + delta;
+    
+    // 边界检查
+    if (newValue < 1) newValue = 1;
+    if (newValue > 10) newValue = 10;
+    
+    // 如果修改的是目标产物武器箱，确保其数量不超过10-其他武器箱数量
+    if (crate === targetCrate) {
+        newValue = Math.min(newValue, 10 - otherCrates.length);
+    }
+    
+    // 如果增加导致总和超过10，则不能增加
+    const otherTotal = otherCrates.reduce((sum, c) => sum + (this.crateQuantities[c] || 0), 0);
+    if (newValue + otherTotal > 10) {
+        newValue = 10 - otherTotal;
+    }
+    
+    // 更新当前武器箱的数量
+    this.crateQuantities[crate] = newValue;
+    
+    // 如果总和不足10，自动分配给其他武器箱
+    const currentTotal = Object.values(this.crateQuantities).reduce((sum, q) => sum + q, 0);
+    if (currentTotal < 10 && otherCrates.length > 0) {
+        const remaining = 10 - newValue;
+        const baseAmount = Math.floor(remaining / otherCrates.length);
+        let extra = remaining % otherCrates.length;
+        
+        otherCrates.forEach(otherCrate => {
+            this.crateQuantities[otherCrate] = Math.max(1, baseAmount + (extra > 0 ? 1 : 0));
+            if (extra > 0) extra--;
+        });
+    }
+    
+    // 更新UI显示
+    this.updateCrateQuantityUI();
+};
+
+// 更新武器箱数量UI显示
+UserInventoryEnhanced.updateCrateQuantityUI = function() {
+    const quantityValues = document.querySelectorAll('.crate-quantity-value');
+    quantityValues.forEach(span => {
+        const crate = span.dataset.crate;
+        if (this.crateQuantities && this.crateQuantities[crate] !== undefined) {
+            span.textContent = this.crateQuantities[crate];
+        }
+    });
+    
+    // 更新总计
+    const totalSum = document.querySelector('.crate-quantity-sum');
+    if (totalSum && this.crateQuantities) {
+        const total = Object.values(this.crateQuantities).reduce((sum, q) => sum + q, 0);
+        totalSum.textContent = total;
+    }
+};
+
+// 新的汰换算法：控制各武器箱参与皮肤数量
+UserInventoryEnhanced.executeTradeupWithQuantityControl = function(candidateSkins, targetConvertedSum) {
+    if (!this.crateQuantities || Object.keys(this.crateQuantities).length === 0) {
+        return this.executeTradeupOriginal(candidateSkins, targetConvertedSum);
+    }
+    
+    // 按照武器箱分组
+    const skinsByCrate = {};
+    candidateSkins.forEach(skin => {
+        if (!skinsByCrate[skin.crate]) {
+            skinsByCrate[skin.crate] = [];
+        }
+        skinsByCrate[skin.crate].push(skin);
+    });
+    
+    // 检查每个武器箱的库存皮肤数量是否足够
+    const selectedCrates = Object.keys(this.crateQuantities);
+    
+    // 检查是否有武器箱库存皮肤数量不足
+    for (const crate of selectedCrates) {
+        const quantity = this.crateQuantities[crate];
+        const crateSkins = skinsByCrate[crate] || [];
+        
+        if (crateSkins.length < quantity) {
+            return {
+                error: true,
+                message: `❌ 武器箱"${crate}"库存皮肤数量不足 (需要${quantity}个, 当前${crateSkins.length}个)`
+            };
+        }
+    }
+    
+    // 使用新的智能替换算法
+    return this.smartTradeupWithQuantityControl(candidateSkins, targetConvertedSum);
+};
+
+// 智能汰换算法：先找最佳组合，再进行智能替换
+UserInventoryEnhanced.smartTradeupWithQuantityControl = function(candidateSkins, targetConvertedSum) {
+    // 第一步：不按武器箱分组，直接使用原始算法找到最佳组合
+    const bestResult = this.executeTradeupOriginal(candidateSkins, targetConvertedSum);
+    
+    if (!bestResult) {
+        return null; // 原始算法无法找到符合条件的组合
+    }
+    
+    // 第二步：检查当前组合是否符合用户设置的皮肤数量要求
+    const currentQuantities = this.countSkinsByCrate(bestResult.group);
+    const isQuantityValid = this.validateQuantities(currentQuantities);
+    
+    if (isQuantityValid) {
+        return bestResult; // 如果符合要求，直接返回
+    }
+    
+    // 第三步：进行智能替换，调整皮肤数量
+    return this.smartSkinReplacement(bestResult.group, candidateSkins, targetConvertedSum);
+};
+
+// 统计组合中各武器箱的皮肤数量
+UserInventoryEnhanced.countSkinsByCrate = function(skins) {
+    const quantities = {};
+    skins.forEach(skin => {
+        if (!quantities[skin.crate]) {
+            quantities[skin.crate] = 0;
+        }
+        quantities[skin.crate]++;
+    });
+    return quantities;
+};
+
+// 验证皮肤数量是否符合用户设置
+UserInventoryEnhanced.validateQuantities = function(currentQuantities) {
+    for (const crate in this.crateQuantities) {
+        const targetQuantity = this.crateQuantities[crate];
+        const currentQuantity = currentQuantities[crate] || 0;
+        
+        if (currentQuantity !== targetQuantity) {
+            return false;
+        }
+    }
+    return true;
+};
+
+// 智能皮肤替换算法
+UserInventoryEnhanced.smartSkinReplacement = function(originalGroup, allSkins, targetConvertedSum) {
+    let bestGroup = [...originalGroup];
+    let bestSum = bestGroup.reduce((sum, skin) => sum + skin.convertedWear, 0);
+    
+    // 统计当前组合中各武器箱的皮肤数量
+    const currentQuantities = this.countSkinsByCrate(bestGroup);
+    
+    // 找出皮肤数量过多的武器箱和不足的武器箱
+    const excessCrates = [];
+    const deficitCrates = [];
+    
+    for (const crate in this.crateQuantities) {
+        const targetQuantity = this.crateQuantities[crate];
+        const currentQuantity = currentQuantities[crate] || 0;
+        
+        if (currentQuantity > targetQuantity) {
+            excessCrates.push({ crate, excess: currentQuantity - targetQuantity });
+        } else if (currentQuantity < targetQuantity) {
+            deficitCrates.push({ crate, deficit: targetQuantity - currentQuantity });
+        }
+    }
+    
+    // 进行智能替换
+    for (const excessInfo of excessCrates) {
+        const { crate: excessCrate, excess } = excessInfo;
+        
+        // 从过多武器箱中找出转换磨损值高的皮肤
+        const excessSkins = bestGroup.filter(skin => skin.crate === excessCrate)
+            .sort((a, b) => b.convertedWear - a.convertedWear)
+            .slice(0, excess);
+        
+        for (const deficitInfo of deficitCrates) {
+            const { crate: deficitCrate, deficit } = deficitInfo;
+            
+            // 从不足武器箱中找出未被选中的皮肤（转换磨损值较低）
+            const availableSkins = allSkins.filter(skin => 
+                skin.crate === deficitCrate && 
+                !bestGroup.includes(skin)
+            );
+            
+            if (availableSkins.length === 0) continue;
+            
+            // 尝试替换
+            for (const excessSkin of excessSkins) {
+                for (const deficitSkin of availableSkins) {
+                    // 确保替换皮肤的转换磨损值比拿出的皮肤低
+                    if (deficitSkin.convertedWear >= excessSkin.convertedWear) continue;
+                    
+                    const tempGroup = bestGroup.map(skin => 
+                        skin === excessSkin ? deficitSkin : skin
+                    );
+                    
+                    const tempSum = tempGroup.reduce((sum, skin) => sum + skin.convertedWear, 0);
+                    
+                    // 检查替换后的数量是否更接近目标
+                    const tempQuantities = this.countSkinsByCrate(tempGroup);
+                    const isBetter = this.isQuantityBetter(tempQuantities, currentQuantities);
+                    
+                    // 如果符合用户设置的皮肤数量且不超过目标磨损值
+                    if (tempSum <= targetConvertedSum && isBetter) {
+                        bestGroup = tempGroup;
+                        bestSum = tempSum;
+                        
+                        // 更新数量统计
+                        currentQuantities[excessCrate]--;
+                        currentQuantities[deficitCrate] = (currentQuantities[deficitCrate] || 0) + 1;
+                        
+                        // 重新检查是否还需要继续替换
+                        if (this.validateQuantities(currentQuantities)) {
+                            return { group: bestGroup, sum: bestSum };
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // 最终验证数量是否符合要求
+    if (this.validateQuantities(currentQuantities)) {
+        // 第四步：在符合数量要求的基础上，优化磨损值使其更接近目标
+        return this.optimizeWearValue(bestGroup, allSkins, targetConvertedSum);
+    }
+    
+    return null;
+};
+
+// 优化磨损值，使其更接近目标产物磨损值
+UserInventoryEnhanced.optimizeWearValue = function(currentGroup, allSkins, targetConvertedSum) {
+    let bestGroup = [...currentGroup];
+    let bestSum = bestGroup.reduce((sum, skin) => sum + skin.convertedWear, 0);
+    
+    // 按武器箱分组
+    const currentQuantities = this.countSkinsByCrate(bestGroup);
+    
+    // 优先尝试用高磨损值皮肤替换（使总和更接近目标）
+    let improved = true;
+    let iterations = 0;
+    
+    while (improved && iterations < 100) {
+        improved = false;
+        iterations++;
+        
+        // 遍历每个武器箱
+        for (const crate in currentQuantities) {
+            // 获取当前武器箱中选中的皮肤（按转换磨损值从低到高排序）
+            const currentCrateSkins = bestGroup.filter(skin => skin.crate === crate)
+                .sort((a, b) => a.convertedWear - b.convertedWear);
+            
+            // 获取该武器箱中未选中的皮肤（按转换磨损值从高到低排序）
+            const availableCrateSkins = allSkins.filter(skin => 
+                skin.crate === crate && !bestGroup.includes(skin)
+            ).sort((a, b) => b.convertedWear - a.convertedWear);
+            
+            if (availableCrateSkins.length === 0) continue;
+            
+            // 尝试用高磨损值皮肤替换当前武器箱中转换磨损值最低的皮肤
+            for (const currentSkin of currentCrateSkins) {
+                for (const availableSkin of availableCrateSkins) {
+                    // 只考虑用更高磨损值的皮肤替换
+                    if (availableSkin.convertedWear <= currentSkin.convertedWear) continue;
+                    
+                    const tempGroup = bestGroup.map(skin => 
+                        skin === currentSkin ? availableSkin : skin
+                    );
+                    
+                    const tempSum = tempGroup.reduce((sum, skin) => sum + skin.convertedWear, 0);
+                    
+                    // 检查是否更接近目标且不超过目标
+                    if (tempSum <= targetConvertedSum && tempSum > bestSum) {
+                        bestGroup = tempGroup;
+                        bestSum = tempSum;
+                        improved = true;
+                        break;
+                    }
+                }
+                
+                if (improved) break;
+            }
+        }
+    }
+    
+    // 如果替换后仍低于目标，尝试精细调整（用稍低的替换稍高的，寻找更接近的组合）
+    if (bestSum < targetConvertedSum) {
+        let bestDiff = targetConvertedSum - bestSum;
+        
+        // 遍历所有可能的替换组合
+        for (let i = 0; i < bestGroup.length; i++) {
+            const currentSkin = bestGroup[i];
+            
+            // 获取当前武器箱中可用的其他皮肤
+            const availableSkins = allSkins.filter(skin => 
+                skin.crate === currentSkin.crate && 
+                !bestGroup.includes(skin)
+            );
+            
+            for (const availableSkin of availableSkins) {
+                const tempGroup = [...bestGroup];
+                tempGroup[i] = availableSkin;
+                
+                const tempSum = tempGroup.reduce((sum, skin) => sum + skin.convertedWear, 0);
+                
+                // 如果不超过目标，且更接近目标
+                if (tempSum <= targetConvertedSum) {
+                    const diff = targetConvertedSum - tempSum;
+                    if (diff < bestDiff) {
+                        bestDiff = diff;
+                        bestGroup = tempGroup;
+                        bestSum = tempSum;
+                    }
+                }
+            }
+        }
+    }
+    
+    return { group: bestGroup, sum: bestSum };
+};
+
+// 判断替换后的数量是否更接近目标
+UserInventoryEnhanced.isQuantityBetter = function(newQuantities, oldQuantities) {
+    let newDeviation = 0;
+    let oldDeviation = 0;
+    
+    for (const crate in this.crateQuantities) {
+        const targetQuantity = this.crateQuantities[crate];
+        const newQuantity = newQuantities[crate] || 0;
+        const oldQuantity = oldQuantities[crate] || 0;
+        
+        newDeviation += Math.abs(newQuantity - targetQuantity);
+        oldDeviation += Math.abs(oldQuantity - targetQuantity);
+    }
+    
+    return newDeviation < oldDeviation;
+};
+
+// 改进的带数量控制的贪心优化算法
+UserInventoryEnhanced.improvedGreedyOptimizeWithQuantity = function(selectedSkins, targetConvertedSum) {
+    if (selectedSkins.length < 10) return null;
+    
+    let bestResult = null;
+    let bestSum = -1;
+    
+    // 尝试多种不同的初始组合
+    for (let attempt = 0; attempt < 3; attempt++) {
+        let currentGroup;
+        
+        if (attempt === 0) {
+            // 策略1：选择转换后磨损值最高的10个皮肤
+            selectedSkins.sort((a, b) => b.convertedWear - a.convertedWear);
+            currentGroup = selectedSkins.slice(0, 10);
+        } else if (attempt === 1) {
+            // 策略2：选择原始位置最好的10个皮肤
+            selectedSkins.sort((a, b) => b.originalPosition - a.originalPosition);
+            currentGroup = selectedSkins.slice(0, 10);
+        } else {
+            // 策略3：随机选择10个皮肤作为初始组合
+            const shuffled = [...selectedSkins].sort(() => Math.random() - 0.5);
+            currentGroup = shuffled.slice(0, 10);
+        }
+        
+        let currentSum = currentGroup.reduce((sum, skin) => sum + skin.convertedWear, 0);
+        
+        // 如果当前组合已经满足要求，直接返回
+        if (currentSum <= targetConvertedSum && currentSum > bestSum) {
+            bestResult = { group: currentGroup, sum: currentSum };
+            bestSum = currentSum;
+        }
+        
+        // 使用改进的贪心替换策略
+        const optimized = this.improvedGreedySwap(currentGroup, selectedSkins, targetConvertedSum);
+        
+        if (optimized && optimized.sum <= targetConvertedSum && optimized.sum > bestSum) {
+            bestResult = optimized;
+            bestSum = optimized.sum;
+        }
+    }
+    
+    return bestResult;
+};
+
+// 改进的贪心替换策略
+UserInventoryEnhanced.improvedGreedySwap = function(currentGroup, allSkins, targetConvertedSum) {
+    let bestGroup = [...currentGroup];
+    let bestSum = bestGroup.reduce((sum, skin) => sum + skin.convertedWear, 0);
+    
+    // 如果当前组合已经满足要求，直接返回
+    if (bestSum <= targetConvertedSum) {
+        return { group: bestGroup, sum: bestSum };
+    }
+    
+    let improved = true;
+    let iterations = 0;
+    
+    // 迭代优化直到无法改进或达到最大迭代次数
+    while (improved && iterations < 100) {
+        improved = false;
+        iterations++;
+        
+        // 尝试替换每个位置的皮肤
+        for (let i = 0; i < 10; i++) {
+            for (let j = 0; j < allSkins.length; j++) {
+                // 跳过已经在组合中的皮肤
+                if (bestGroup.includes(allSkins[j])) continue;
+                
+                const tempGroup = [...bestGroup];
+                tempGroup[i] = allSkins[j];
+                
+                const tempSum = tempGroup.reduce((sum, skin) => sum + skin.convertedWear, 0);
+                
+                // 如果新组合更接近目标值且不超过目标值
+                if (tempSum <= targetConvertedSum && tempSum > bestSum) {
+                    bestGroup = tempGroup;
+                    bestSum = tempSum;
+                    improved = true;
+                }
+            }
+        }
+    }
+    
+    return bestSum <= targetConvertedSum ? { group: bestGroup, sum: bestSum } : null;
+};
+
+// 原始汰换算法（保持原有逻辑）
+UserInventoryEnhanced.executeTradeupOriginal = function(candidateSkins, targetConvertedSum) {
+    let bestResult = null;
+    let bestSum = -1;
+    
+    // 遍历所有可能的10个皮肤组合
+    for (let i = 0; i <= candidateSkins.length - 10; i++) {
+        const initialGroup = candidateSkins.slice(i, i + 10);
+        const optimized = this.greedyOptimize(initialGroup, candidateSkins, targetConvertedSum);
+        
+        if (optimized.sum > bestSum && optimized.sum <= targetConvertedSum) {
+            bestSum = optimized.sum;
+            bestResult = optimized;
+        }
+    }
+    
+    return bestResult;
 };

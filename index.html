@@ -9,16 +9,12 @@
 <body>
     <div class="container">
         <div class="main-content">
-            <!-- 左侧容器切换按钮 -->
-            <button class="sidebar-toggle" id="sidebarToggle" title="显示/隐藏侧边栏">◀</button>
-            
             <!-- 左侧容器：主要功能 (40%) -->
             <div class="left-container" id="leftContainer">
                 <div class="section tool-info">
                     <div class="section-title">CS:GO 反向汰换模拟</div>
                     <div class="tool-description">
-                        <p>数据仅供参考！功能不能保证！如果需要读取库存和一键汰换功能请在电脑上打开网页。</p>
-                        <p>有什么问题和建议可以在小黑盒搜索"CS炼金反向汰换模拟"，在帖子下面评论反馈。</p>
+                        <p>数据仅供参考！功能不能保证！如果需要读取库存和一键汰换功能请在电脑上打开网页。有什么问题和建议可以在小黑盒搜索"CS炼金反向汰换模拟"，在帖子下面评论反馈。</p>
                     </div>
                 </div>
                 
@@ -158,34 +154,39 @@
                                     <label class="tradeup-label">目标产物最低磨损值</label>
                                     <input type="text" class="tradeup-input" id="targetMinWearValue" placeholder="输入目标产物最低磨损值" value="0.000000">
                                 </div>
+                                <div class="tradeup-input-buttons-col">
+                                    <button class="tradeup-btn-small" id="tradeupFetchBtn" title="左侧获取产物数据">左侧获取产物数据</button>
+                                    <button class="tradeup-btn-small" id="tradeupSaveBtn" title="保存记录">保存记录</button>
+                                </div>
+                            </div>
+                            
+                            <!-- 保存的记录 -->
+                            <div class="tradeup-saved-records" id="tradeupSavedRecords" style="display: none;">
+                                <div class="tradeup-records-title">📋 保存的记录</div>
+                                <div class="tradeup-records-list" id="tradeupRecordsList">
+                                    <!-- 保存的记录将通过JavaScript动态生成 -->
+                                </div>
                             </div>
                             
                             <div class="crate-collection-section">
                                 <div class="crate-collection-title">📦 选择武器箱或收藏品</div>
-                                <div class="crate-collection-filter">
-                                    <button class="filter-btn active" id="filterAllBtn">全选</button>
-                                    <button class="filter-btn" id="filterNoneBtn">取消全选</button>
-                                </div>
                                 <div class="crate-collection-list" id="crateCollectionList">
                                     <!-- 武器箱和收藏品将通过JavaScript动态生成 -->
                                 </div>
                             </div>
-                        </div>
-                        
-                        <!-- 保存的信息记录 -->
-                        <div class="tradeup-saved-records" id="tradeupSavedRecords" style="display: none;">
-                            <div class="tradeup-records-title">📋 保存的记录</div>
-                            <div class="tradeup-records-list" id="tradeupRecordsList">
-                                <!-- 保存的记录将通过JavaScript动态生成 -->
+                            
+                            <div class="crate-quantity-section" id="crateQuantitySection" style="display: none;">
+                                <div class="crate-quantity-title">🔢 设置各武器箱参与皮肤数量</div>
+                                <div class="crate-quantity-list" id="crateQuantityList">
+                                    <!-- 各武器箱数量设置将通过JavaScript动态生成 -->
+                                </div>
                             </div>
                         </div>
                         
                         <div class="tradeup-buttons">
-                            <button class="tradeup-btn tradeup-btn-fetch" id="tradeupFetchBtn">📋 从左侧获取产物数据</button>
-                            <button class="tradeup-btn tradeup-btn-save" id="tradeupSaveBtn">💾 保存记录</button>
                             <button class="tradeup-btn" id="tradeupBtn">执行汰换计算</button>
                             <button class="tradeup-btn tradeup-btn-confirm" id="tradeupConfirmBtn" disabled>确认并清空</button>
-                            <button class="tradeup-btn tradeup-btn-copy-script" id="tradeupCopyScriptBtn" disabled>📋 复制自动脚本</button>
+                            <button class="tradeup-btn tradeup-btn-copy-script" id="tradeupCopyScriptBtn" disabled>复制自动脚本(测试中)</button>
                         </div>
                         <div class="tradeup-result" id="tradeupResult"></div>
                     </div>
@@ -243,28 +244,6 @@
     <script>
         // 展开/收起功能
         document.addEventListener('DOMContentLoaded', function() {
-            // 左侧容器显示/隐藏功能
-            const sidebarToggle = document.getElementById('sidebarToggle');
-            const leftContainer = document.getElementById('leftContainer');
-            
-            if (sidebarToggle && leftContainer) {
-                sidebarToggle.addEventListener('click', function() {
-                    const isCollapsed = leftContainer.classList.contains('collapsed');
-                    
-                    if (isCollapsed) {
-                        // 显示左侧容器
-                        leftContainer.classList.remove('collapsed');
-                        sidebarToggle.textContent = '◀';
-                        sidebarToggle.classList.remove('collapsed');
-                    } else {
-                        // 隐藏左侧容器
-                        leftContainer.classList.add('collapsed');
-                        sidebarToggle.textContent = '▶';
-                        sidebarToggle.classList.add('collapsed');
-                    }
-                });
-            }
-            
             const dataProcessToggle = document.getElementById('dataProcessToggle');
             const inventoryToggle = document.getElementById('inventoryToggle');
             const dataProcessContent = document.getElementById('dataProcessContent');
