@@ -35,6 +35,10 @@ const UserInventoryEnhanced = {
     // 初始化：从localStorage加载保存的记录
     init: function() {
         this.loadSavedRecords();
+        
+        // 初始化武器箱/收藏品选择功能并渲染列表
+        this.initCrateSelection();
+        this.renderCrateList();
     },
     
     // 从localStorage加载保存的记录
@@ -920,15 +924,15 @@ const UserInventoryEnhanced = {
         // 在执行汰换计算前保存用户设置的皮肤数量
         const originalCrateQuantities = {...this.crateQuantities};
         
-        // 根据选择情况调用不同的汰换算法
-        const uniqueCrates = [...new Set(candidateSkins.map(skin => skin.crate))];
-        const selectedCrates = uniqueCrates.filter(crate => this.selectedCrates[crate]);
+        // 根据开关状态调用不同的汰换算法
+        const useQuantityControl = document.getElementById('useQuantityControl');
+        const useQuantityControlChecked = useQuantityControl && useQuantityControl.checked;
         
-        if (selectedCrates.length === 1) {
-            // 只选中了目标产物的武器箱，使用原始算法
+        if (!useQuantityControlChecked) {
+            // 开关关闭，使用第一套算法（原始算法）
             bestResult = this.executeTradeupOriginal(candidateSkins, targetConvertedSum);
         } else {
-            // 选中了多个武器箱，使用带数量控制的新算法
+            // 开关开启，使用第二套算法（带数量控制）
             const quantityResult = this.executeTradeupWithQuantityControl(candidateSkins, targetConvertedSum);
             
             // 处理算法返回的错误信息
@@ -1666,6 +1670,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // 数量控制开关事件
+    const useQuantityControl = document.getElementById('useQuantityControl');
+    if (useQuantityControl) {
+        useQuantityControl.addEventListener('change', function() {
+            UserInventoryEnhanced.toggleCrateQuantitySection();
+        });
+    }
+    
     const tradeupPopupBtn = document.getElementById('tradeupPopupBtn');
     if (tradeupPopupBtn) {
         tradeupPopupBtn.addEventListener('click', function() {
@@ -2035,18 +2047,22 @@ UserInventoryEnhanced.getCrateColorClass = function(crate, isResult = false) {
 UserInventoryEnhanced.toggleCrateQuantitySection = function() {
     const quantitySection = document.getElementById('crateQuantitySection');
     const quantityList = document.getElementById('crateQuantityList');
+    const useQuantityControl = document.getElementById('useQuantityControl');
     
     if (!this.processedData || !this.processedData.matched) return;
     
     const uniqueCrates = [...new Set(this.processedData.matched.map(skin => skin.crate))];
     const selectedCrates = uniqueCrates.filter(crate => this.selectedCrates[crate]);
     
-    // 如果选中了多个武器箱，显示数量设置区域
-    if (selectedCrates.length > 1) {
-        quantitySection.style.display = 'block';
+    // 数量设置区域一直显示，但内容区域根据开关状态显示/隐藏
+    quantitySection.style.display = 'block';
+    
+    // 如果开启了数量控制且选中了武器箱，显示数量设置内容
+    if (useQuantityControl && useQuantityControl.checked && selectedCrates.length > 0) {
+        quantityList.style.display = 'flex';
         this.renderCrateQuantityList(selectedCrates);
     } else {
-        quantitySection.style.display = 'none';
+        quantityList.style.display = 'none';
     }
 };
 
