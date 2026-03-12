@@ -1821,7 +1821,7 @@ UserInventoryEnhanced.showProcessResultPopup = function(results) {
                     </div>
                 </div>
                 <div style="font-size: 14px; color: #6c757d; margin-bottom: 15px;">
-                    未匹配的皮肤名字可以反馈一下
+                    请勿使用自动脚本，未匹配的皮肤名字可以反馈一下
                 </div>
                 <div style="font-size: 12px; color: #6c757d;">
                     点击任意区域外关闭提示框
@@ -1845,6 +1845,9 @@ UserInventoryEnhanced.showProcessResultPopup = function(results) {
                         <span style="color: #28a745;">✅ 匹配成功：</span>
                         <span style="color: #28a745; font-weight: bold;">${matchedCount}</span>
                     </div>
+                </div>
+                <div style="font-size: 12px; color: #6c757d; margin-bottom: 15px;">
+                    若匹配数量与预期数量不一致，请勿使用自动脚本，检查是否有皮肤没有磨损值
                 </div>
                 <div style="font-size: 12px; color: #6c757d;">
                     点击任意区域外关闭提示框

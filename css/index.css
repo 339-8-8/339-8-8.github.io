@@ -1763,24 +1763,22 @@ body {
     border-radius: 10px;
     background: white;
     border: 2px solid #e2e8f0;
-    min-height: 100px;
+    min-height: 344px;
     transition: all 0.3s ease;
-}
-
-.tradeup-result.show {
-    min-height: 200px;
 }
 
 .tradeup-result.error {
     background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
     border-color: #fc8181;
     color: #c53030;
+    padding: 16px;
 }
 
 .tradeup-result.success {
     background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
     border-color: #48bb78;
     color: #22543d;
+    padding: 16px;
 }
 
 .tradeup-skin-list {
