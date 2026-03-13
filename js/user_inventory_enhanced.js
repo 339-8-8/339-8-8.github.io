@@ -1221,26 +1221,28 @@ const UserInventoryEnhanced = {
     // 显示汇总信息（紧凑版）
     displaySummaryCompact: function(results) {
         const summaryContent = document.getElementById('summaryContentCompact');
-        summaryContent.innerHTML = `
-            共处理 ${results.summary.totalProcessed} 个皮肤<br>
-            匹配成功: ${results.summary.totalMatched} 个 (${results.summary.matchRate}%)<br>
-            未匹配: ${results.summary.totalUnmatched} 个<br>
-        `;
+        if (summaryContent) {
+            summaryContent.innerHTML = `
+                共处理 ${results.summary.totalProcessed} 个皮肤<br>
+                匹配成功: ${results.summary.totalMatched} 个 (${results.summary.matchRate}%)<br>
+                未匹配: ${results.summary.totalUnmatched} 个<br>
+            `;
+        }
         
         // 显示未匹配皮肤
         const unmatchedSection = document.getElementById('unmatchedSection');
         const unmatchedList = document.getElementById('unmatchedList');
         
         if (results.summary.totalUnmatched > 0 && results.unmatched && results.unmatched.length > 0) {
-            unmatchedSection.style.display = 'block';
+            if (unmatchedSection) unmatchedSection.style.display = 'block';
             
             let html = '';
             results.unmatched.forEach(skin => {
                 html += `<div class="unmatched-item">• ${skin.originalName || skin.processedName}</div>`;
             });
-            unmatchedList.innerHTML = html;
+            if (unmatchedList) unmatchedList.innerHTML = html;
         } else {
-            unmatchedSection.style.display = 'none';
+            if (unmatchedSection) unmatchedSection.style.display = 'none';
         }
     },
     
@@ -1649,8 +1651,8 @@ const UserInventoryEnhanced = {
         if (!bestResult) {
             resultDiv.className = 'tradeup-result error';
             
-            // 提供更详细的错误信息
-            const selectedCrates = uniqueCrates.filter(crate => this.selectedCrates[crate]);
+            // 获取选中的武器箱列表
+            const selectedCrates = Object.keys(this.selectedCrates).filter(crate => this.selectedCrates[crate]);
             const crateCount = selectedCrates.length;
             
             let errorMessage = '❌ 无法找到符合条件的皮肤组合<br>';
@@ -1665,6 +1667,11 @@ const UserInventoryEnhanced = {
             }
             
             resultDiv.innerHTML = errorMessage;
+            
+            // 普通汰换报错后禁用取消汰换按钮
+            const rollbackBtn = document.getElementById('tradeupRollbackBtn');
+            if (rollbackBtn) rollbackBtn.disabled = true;
+            
             return;
         }
         
@@ -1673,12 +1680,22 @@ const UserInventoryEnhanced = {
         if (resultingWear > targetWearValue) {
             resultDiv.className = 'tradeup-result error';
             resultDiv.innerHTML = `❌ 汰换结果超出目标磨损值 (目标: ${targetWearValue.toFixed(6)}, 结果: ${resultingWear.toFixed(6)})`;
+            
+            // 普通汰换报错后禁用取消汰换按钮
+            const rollbackBtn = document.getElementById('tradeupRollbackBtn');
+            if (rollbackBtn) rollbackBtn.disabled = true;
+            
             return;
         }
         
         if (resultingWear < targetMinWearValue) {
             resultDiv.className = 'tradeup-result error';
             resultDiv.innerHTML = `❌ 汰换结果低于目标产物最低磨损值 (最低: ${targetMinWearValue.toFixed(6)}, 结果: ${resultingWear.toFixed(6)})`;
+            
+            // 普通汰换报错后禁用取消汰换按钮
+            const rollbackBtn = document.getElementById('tradeupRollbackBtn');
+            if (rollbackBtn) rollbackBtn.disabled = true;
+            
             return;
         }
         
@@ -1803,52 +1820,60 @@ const UserInventoryEnhanced = {
 
     // 确认并清空
     confirmAndClear: function() {
-        if (!this.currentTradeupResult) {
+        // 检查是否有需要确认的汰换结果（普通汰换或快速汰换）
+        // 快速汰换模式下，皮肤已经在快速汰换过程中被删除了，不需要再次删除
+        const isQuickTradeupMode = this.quickTradeupResults && this.quickTradeupResults.length > 0;
+        
+        if (!this.currentTradeupResult && !isQuickTradeupMode) {
             return;
         }
         
-        const skinsToRemove = this.currentTradeupResult.skins;
-        const targetSkin = this.currentTradeupResult.targetSkin;
-        
-        // 从processedData.matched中删除这10个皮肤
-        if (this.processedData && this.processedData.matched) {
-            // 创建一个Set来存储要删除的皮肤的唯一标识
-            const skinsToRemoveSet = new Set(skinsToRemove.map(s => `${s.skin}-${s.wear}`));
+        // 如果是普通汰换，处理皮肤删除逻辑
+        // 快速汰换模式下，皮肤已经在快速汰换过程中被删除了，不需要再次删除
+        if (this.currentTradeupResult && !isQuickTradeupMode) {
+            const skinsToRemove = this.currentTradeupResult.skins;
+            const targetSkin = this.currentTradeupResult.targetSkin;
             
-            // 过滤掉要删除的皮肤
-            this.processedData.matched = this.processedData.matched.filter(skin => {
-                return !skinsToRemoveSet.has(`${skin.skin}-${skin.wear}`);
-            });
+            // 从processedData.matched中删除这10个皮肤
+            if (this.processedData && this.processedData.matched) {
+                // 创建一个Set来存储要删除的皮肤的唯一标识
+                const skinsToRemoveSet = new Set(skinsToRemove.map(s => `${s.skin}-${s.wear}`));
+                
+                // 过滤掉要删除的皮肤
+                this.processedData.matched = this.processedData.matched.filter(skin => {
+                    return !skinsToRemoveSet.has(`${skin.skin}-${skin.wear}`);
+                });
+                
+                // 更新summary
+                this.processedData.summary.totalMatched = this.processedData.matched.length;
+                this.processedData.summary.totalUnmatched = this.processedData.unmatched.length;
+                this.processedData.summary.matchRate = this.processedData.summary.totalProcessed > 0 ? 
+                    (this.processedData.summary.totalMatched / this.processedData.summary.totalProcessed * 100).toFixed(2) : 0;
+                
+                // 更新window对象上的数据
+                window.userProcessedData = this.processedData;
+            }
             
-            // 更新summary
-            this.processedData.summary.totalMatched = this.processedData.matched.length;
-            this.processedData.summary.totalUnmatched = this.processedData.unmatched.length;
-            this.processedData.summary.matchRate = this.processedData.summary.totalProcessed > 0 ? 
-                (this.processedData.summary.totalMatched / this.processedData.summary.totalProcessed * 100).toFixed(2) : 0;
-            
-            // 更新window对象上的数据
-            window.userProcessedData = this.processedData;
-        }
-        
-        // 从originalSkinsData中删除选中的10个皮肤
-        if (window.originalSkinsData && window.originalSkinsData.skins) {
-            // 创建一个Set来存储要删除的皮肤的唯一标识
-            const skinsToRemoveSet = new Set(skinsToRemove.map(s => `${s.originalName}-${s.wear}`));
-            
-            // 过滤掉要删除的皮肤
-            window.originalSkinsData.skins = window.originalSkinsData.skins.filter(skin => {
-                return !skinsToRemoveSet.has(`${skin.originalName}-${skin.wear}`);
-            });
-            
-            // 添加上级皮肤到最前面
-            if (targetSkin) {
-                const upperGradeSkin = {
-                    originalName: '合成产物',
-                    processedName: '合成产物',
-                    wear: 0.111111111,
-                    grade: targetSkin.grade
-                };
-                window.originalSkinsData.skins.unshift(upperGradeSkin);
+            // 从originalSkinsData中删除选中的10个皮肤
+            if (window.originalSkinsData && window.originalSkinsData.skins) {
+                // 创建一个Set来存储要删除的皮肤的唯一标识
+                const skinsToRemoveSet = new Set(skinsToRemove.map(s => `${s.originalName}-${s.wear}`));
+                
+                // 过滤掉要删除的皮肤
+                window.originalSkinsData.skins = window.originalSkinsData.skins.filter(skin => {
+                    return !skinsToRemoveSet.has(`${skin.originalName}-${skin.wear}`);
+                });
+                
+                // 添加上级皮肤到最前面
+                if (targetSkin) {
+                    const upperGradeSkin = {
+                        originalName: '合成产物',
+                        processedName: '合成产物',
+                        wear: 0.111111111,
+                        grade: targetSkin.grade
+                    };
+                    window.originalSkinsData.skins.unshift(upperGradeSkin);
+                }
             }
         }
         
@@ -1870,6 +1895,13 @@ const UserInventoryEnhanced = {
         
         // 清空备份数据（表示已经确认，无法取消）
         this.backupData = null;
+        
+        // 清空快速汰换结果数据
+        this.quickTradeupResults = [];
+        this.currentResultIndex = 0;
+        
+        // 清空当前汰换结果
+        this.currentTradeupResult = null;
         
         // 重置筛选下拉框
         const crateSelect = document.getElementById('crateSelect');
@@ -2187,9 +2219,12 @@ const UserInventoryEnhanced = {
         scriptContent += 'move coord17 0.1\n';
         scriptContent += 'click left 1\n';
         scriptContent += 'wait 0.5\n';
-        // scriptContent += 'move coord18 0.1\n';
-        // scriptContent += 'click left 1\n';
-        // scriptContent += 'wait 0.5\n';
+        scriptContent += 'move coord18 0.1\n';
+        scriptContent += 'click left 1\n';
+        scriptContent += 'wait 1.5\n';
+        scriptContent += 'move coord19 0.1\n';
+        scriptContent += 'click left 1\n';
+        scriptContent += 'wait 1\n';
         
         return scriptContent;
     },
@@ -2255,6 +2290,12 @@ const UserInventoryEnhanced = {
         scriptContent += 'move coord17 0.1\n';
         scriptContent += 'click left 1\n';
         scriptContent += 'wait 0.5\n';
+        scriptContent += 'move coord18 0.1\n';
+        scriptContent += 'click left 1\n';
+        scriptContent += 'wait 1.5\n';
+        scriptContent += 'move coord19 0.1\n';
+        scriptContent += 'click left 1\n';
+        scriptContent += 'wait 1\n';
         
         return scriptContent;
     },
