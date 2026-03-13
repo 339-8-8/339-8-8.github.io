@@ -39,8 +39,695 @@ const UserInventoryEnhanced = {
         // 初始化武器箱/收藏品选择功能并渲染列表
         this.initCrateSelection();
         this.renderCrateList();
+        
+        // 初始化数据备份
+        this.backupData = null;
+        
+        // 初始化快速汰换结果列表
+        this.quickTradeupResults = [];
+        this.currentResultIndex = 0;
     },
     
+    // 备份当前数据状态
+    backupCurrentData: function() {
+        this.backupData = {
+            processedData: this.processedData ? JSON.parse(JSON.stringify(this.processedData)) : null,
+            originalSkinsData: window.originalSkinsData ? JSON.parse(JSON.stringify(window.originalSkinsData)) : null,
+            selectedCrates: {...this.selectedCrates},
+            crateQuantities: {...this.crateQuantities}
+        };
+        
+        // 启用回退按钮
+        const rollbackBtn = document.getElementById('tradeupRollbackBtn');
+        if (rollbackBtn) {
+            rollbackBtn.disabled = false;
+        }
+    },
+    
+    // 数据回退
+    rollbackData: function() {
+        if (!this.backupData) {
+            return;
+        }
+        
+        // 恢复数据
+        this.processedData = this.backupData.processedData;
+        window.originalSkinsData = this.backupData.originalSkinsData;
+        this.selectedCrates = {...this.backupData.selectedCrates};
+        this.crateQuantities = {...this.backupData.crateQuantities};
+        
+        // 更新显示
+        this.renderCrateList();
+        
+        // 更新皮肤库存显示
+        const importResults = document.getElementById('importResults');
+        if (importResults && this.processedData && this.processedData.matched) {
+            this.displayResults(this.processedData.matched, importResults, 'matched');
+        }
+        
+        // 清空结果区域
+        const resultDiv = document.getElementById('tradeupResult');
+        resultDiv.className = 'tradeup-result';
+        resultDiv.innerHTML = '';
+        
+        // 禁用确认和回退按钮
+        const confirmBtn = document.getElementById('tradeupConfirmBtn');
+        const rollbackBtn = document.getElementById('tradeupRollbackBtn');
+        const copyScriptBtn = document.getElementById('tradeupCopyScriptBtn');
+        
+        if (confirmBtn) confirmBtn.disabled = true;
+        if (rollbackBtn) rollbackBtn.disabled = true;
+        if (copyScriptBtn) copyScriptBtn.disabled = true;
+        
+        // 清空当前结果
+        this.currentTradeupResult = null;
+        
+        // 清空快速汰换结果列表
+        this.quickTradeupResults = [];
+        this.currentResultIndex = 0;
+        
+        // 清空备份
+        this.backupData = null;
+    },
+    
+    // 快速汰换：一次性生成所有结果
+    quickTradeup: function() {
+        const self = this;
+        const resultDiv = document.getElementById('tradeupResult');
+        const quickBtn = document.getElementById('tradeupQuickBtn');
+        
+        // 检查是否已经有汰换结果且未确认/回退
+        if ((this.currentTradeupResult || (this.quickTradeupResults && this.quickTradeupResults.length > 0)) && this.backupData) {
+            // 已经有汰换结果且未确认/回退，不执行操作
+            return;
+        }
+        
+        // 禁用快速汰换按钮，防止重复点击
+        if (quickBtn) quickBtn.disabled = true;
+        
+        // 显示进度条
+        resultDiv.className = 'tradeup-result';
+        resultDiv.innerHTML = `
+            <div class="quick-tradeup-progress">
+                <div class="progress-text">正在快速汰换中...</div>
+                <div class="progress-bar">
+                    <div class="progress-indicator"></div>
+                </div>
+                <div class="progress-subtext">准备开始计算</div>
+            </div>
+        `;
+        
+        // 清空之前的结果
+        this.quickTradeupResults = [];
+        this.currentResultIndex = 0;
+        
+        // 延迟执行批量计算，让进度条有显示时间
+        setTimeout(function() {
+            self.executeQuickTradeupBatch();
+        }, 100);
+    },
+    
+    // 批量执行快速汰换
+    executeQuickTradeupBatch: function() {
+        const self = this;
+        const resultDiv = document.getElementById('tradeupResult');
+        const quickBtn = document.getElementById('tradeupQuickBtn');
+        
+        // 在开始计算前备份数据（只有在第一次执行时）
+        if (!this.backupData) {
+            this.backupCurrentData();
+        }
+        
+        let iterationCount = 0;
+        const maxIterations = 100; // 防止无限循环
+        
+        // 更新进度条显示
+        function updateProgress(current, total, status) {
+            const progressSubtext = resultDiv.querySelector('.progress-subtext');
+            if (progressSubtext) {
+                progressSubtext.textContent = `已完成 ${current} 次汰换，${status}`;
+            }
+        }
+        
+        function executeNext() {
+            if (iterationCount >= maxIterations) {
+                // 达到最大迭代次数，停止
+                if (self.quickTradeupResults.length > 0) {
+                    updateProgress(self.quickTradeupResults.length, maxIterations, '达到最大次数');
+                    self.displayQuickTradeupResults();
+                } else {
+                    resultDiv.className = 'tradeup-result error';
+                    resultDiv.innerHTML = '❌ 未找到任何符合条件的组合';
+                    // 快速汰换失败，清空备份数据，回退按钮保持禁用
+                    self.backupData = null;
+                    const rollbackBtn = document.getElementById('tradeupRollbackBtn');
+                    if (rollbackBtn) rollbackBtn.disabled = true;
+                    if (quickBtn) quickBtn.disabled = false;
+                }
+                return;
+            }
+            
+            iterationCount++;
+            
+            // 检查是否有足够皮肤
+            const filteredSkins = self.getFilteredSkins();
+            if (!filteredSkins || filteredSkins.length < 10) {
+                // 皮肤不足，停止快速汰换
+                if (self.quickTradeupResults.length > 0) {
+                    updateProgress(self.quickTradeupResults.length, maxIterations, '皮肤不足');
+                    self.displayQuickTradeupResults();
+                } else {
+                    resultDiv.className = 'tradeup-result error';
+                    resultDiv.innerHTML = '❌ 库存中皮肤数量不足，无法继续快速汰换';
+                    // 快速汰换失败，清空备份数据，回退按钮保持禁用
+                    self.backupData = null;
+                    const rollbackBtn = document.getElementById('tradeupRollbackBtn');
+                    if (rollbackBtn) rollbackBtn.disabled = true;
+                    if (quickBtn) quickBtn.disabled = false;
+                }
+                return;
+            }
+            
+            // 更新进度显示
+            updateProgress(self.quickTradeupResults.length, maxIterations, '计算中...');
+            
+            try {
+            // 执行计算（不显示结果）
+            self.executeTradeupInternalSilent();
+            
+            // 检查计算结果（立即执行，不延迟）
+            const hasResult = self.currentTradeupResult !== null;
+            
+            if (hasResult) {
+                // 保存当前库存数据的快照（用于准确计算原始位置）
+                const currentInventorySnapshot = {
+                    originalSkinsData: JSON.parse(JSON.stringify(window.originalSkinsData)),
+                    processedData: JSON.parse(JSON.stringify(self.processedData))
+                };
+                
+                // 保存当前结果到列表（包含库存快照）
+                self.quickTradeupResults.push({
+                    skins: self.currentTradeupResult.skins,
+                    targetSkin: self.currentTradeupResult.targetSkin,
+                    targetWear: self.currentTradeupResult.targetWear,
+                    resultingWear: self.currentTradeupResult.resultingWear,
+                    inventorySnapshot: currentInventorySnapshot
+                });
+                
+                // 执行确认并清空（不改变按钮状态）
+                self.doConfirmAndClear(true);
+                
+                // 继续下一次
+                executeNext();
+            } else {
+                // 没有结果（报错或无解），停止快速汰换
+                if (self.quickTradeupResults.length > 0) {
+                    updateProgress(self.quickTradeupResults.length, maxIterations, '计算完成');
+                    self.displayQuickTradeupResults();
+                } else {
+                    resultDiv.className = 'tradeup-result error';
+                    resultDiv.innerHTML = '❌ 未找到任何符合条件的组合';
+                    // 快速汰换失败，清空备份数据，回退按钮保持禁用
+                    self.backupData = null;
+                    const rollbackBtn = document.getElementById('tradeupRollbackBtn');
+                    if (rollbackBtn) rollbackBtn.disabled = true;
+                }
+                if (quickBtn) quickBtn.disabled = false;
+            }
+            } catch (error) {
+                console.error('快速汰换计算错误:', error);
+                // 发生错误，停止快速汰换
+                if (self.quickTradeupResults.length > 0) {
+                    updateProgress(self.quickTradeupResults.length, maxIterations, '计算错误');
+                    self.displayQuickTradeupResults();
+                } else {
+                    resultDiv.className = 'tradeup-result error';
+                    resultDiv.innerHTML = '❌ 快速汰换过程中发生错误，请检查控制台';
+                    // 快速汰换失败，清空备份数据，回退按钮保持禁用
+                    self.backupData = null;
+                    const rollbackBtn = document.getElementById('tradeupRollbackBtn');
+                    if (rollbackBtn) rollbackBtn.disabled = true;
+                }
+                if (quickBtn) quickBtn.disabled = false;
+            }
+        }
+        
+        // 开始执行
+        executeNext();
+    },
+    
+    // 执行内部计算（不显示结果，用于快速汰换）
+    executeTradeupInternalSilent: function() {
+        const targetSkinName = document.getElementById('targetSkinName').value.trim();
+        const targetWearValue = parseFloat(document.getElementById('targetWearValue').value.trim());
+        const targetMinWearValue = parseFloat(document.getElementById('targetMinWearValue').value.trim());
+        
+        if (!targetSkinName || isNaN(targetWearValue) || isNaN(targetMinWearValue)) {
+            return;
+        }
+        
+        if (targetMinWearValue >= targetWearValue) {
+            return;
+        }
+        
+        const filteredSkins = this.getFilteredSkins();
+        if (!filteredSkins || filteredSkins.length === 0) {
+            return;
+        }
+        
+        const targetSkin = this.findTargetSkin(targetSkinName);
+        if (!targetSkin) {
+            return;
+        }
+        
+        const lowerGrade = this.getLowerGrade(targetSkin.grade);
+        if (!lowerGrade) {
+            return;
+        }
+        
+        if (targetWearValue < targetSkin.minWear || targetWearValue > targetSkin.maxWear) {
+            return;
+        }
+        
+        const targetConvertedSum = this.calculateConvertedWear(targetWearValue, targetSkin.minWear, targetSkin.maxWear) * 10;
+        
+        if (!this.selectedCrates[targetSkin.crate]) {
+            return;
+        }
+        
+        this.toggleCrateQuantitySection();
+        
+        const candidateSkins = filteredSkins.filter(skin => {
+            return skin.grade === lowerGrade && this.selectedCrates[skin.crate];
+        });
+        
+        if (candidateSkins.length < 10) {
+            return;
+        }
+        
+        // 执行计算逻辑（与 executeTradeupInternal 相同，但不显示结果）
+        const useQuantityControl = document.getElementById('useQuantityControl');
+        const useQuantityControlChecked = useQuantityControl && useQuantityControl.checked;
+        
+        if (!useQuantityControlChecked) {
+            const result = UserInventoryEnhanced.executeTradeupOriginal(candidateSkins, targetConvertedSum);
+            if (result && result.group && result.group.length === 10) {
+                const resultingWear = this.calculateUpperWear(result.sum, targetSkin.minWear, targetSkin.maxWear);
+                
+                if (resultingWear <= targetWearValue) {
+                    this.currentTradeupResult = {
+                        skins: result.group,
+                        targetSkin: targetSkin,
+                        targetWear: targetWearValue,
+                        resultingWear: resultingWear
+                    };
+                }
+            }
+        } else {
+            const result = UserInventoryEnhanced.executeTradeupWithQuantityControl(candidateSkins, targetConvertedSum);
+            if (result && result.group && result.group.length === 10) {
+                const resultingWear = this.calculateUpperWear(result.sum, targetSkin.minWear, targetSkin.maxWear);
+                
+                if (resultingWear <= targetWearValue) {
+                    this.currentTradeupResult = {
+                        skins: result.group,
+                        targetSkin: targetSkin,
+                        targetWear: targetWearValue,
+                        resultingWear: resultingWear
+                    };
+                }
+            }
+        }
+    },
+    
+    // 显示快速汰换结果列表（分页）
+    displayQuickTradeupResults: function() {
+        const resultDiv = document.getElementById('tradeupResult');
+        
+        if (this.quickTradeupResults.length === 0) {
+            return;
+        }
+        
+        // 显示第一页的结果
+        this.displayResultPage(0);
+    },
+    
+    // 显示指定页的结果
+    displayResultPage: function(index) {
+        const resultDiv = document.getElementById('tradeupResult');
+        const result = this.quickTradeupResults[index];
+        
+        if (!result) return;
+        
+        const { targetSkin, targetWear, resultingWear, inventorySnapshot } = result;
+        
+        // 计算每个皮肤的原始位置（使用汰换计算时的库存快照）
+        if (result.skins && result.skins.length > 0 && inventorySnapshot) {
+            // 为每个皮肤计算原始位置
+            result.skins.forEach((skin, idx) => {
+                // 使用汰换计算时的库存快照
+                const snapshotSkins = inventorySnapshot.originalSkinsData.skins;
+                
+                // 获取当前皮肤级别的所有皮肤
+                const allSkinsInGrade = snapshotSkins.filter(s => 
+                    s.grade === skin.grade
+                );
+                
+                // 根据皮肤名称和磨损值精确匹配位置
+                let positionInAll = -1;
+                for (let i = allSkinsInGrade.length - 1; i >= 0; i--) {
+                    if (allSkinsInGrade[i].originalName === skin.originalName && 
+                        allSkinsInGrade[i].wear === skin.wear) {
+                        positionInAll = i;
+                        break;
+                    }
+                }
+                
+                // 原始位置是从1开始计数的
+                skin.originalPosition = positionInAll !== -1 ? (positionInAll + 1) : 0;
+            });
+            
+            // 按原始位置从大到小排序
+            result.skins.sort((a, b) => b.originalPosition - a.originalPosition);
+        }
+        
+        let skinListHtml = '<div class="tradeup-skin-list">';
+        result.skins.forEach((skin, index) => {
+            const colorClass = this.getCrateColorClass(skin.crate, true);
+            skinListHtml += `
+                <div class="tradeup-skin-item ${colorClass}">
+                    <div class="tradeup-skin-main">
+                        <div class="tradeup-skin-name">
+                            <span class="tradeup-order">#${index + 1}</span>
+                            ${skin.skin}
+                        </div>
+                        <div class="tradeup-skin-details">
+                            <div class="tradeup-skin-info-line">
+                                <span class="tradeup-skin-crate">${skin.crate}</span>
+                                <span class="tradeup-skin-order-info">原始位置：${skin.originalPosition || ''}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tradeup-skin-wear">${skin.wear}</div>
+                </div>
+            `;
+        });
+        skinListHtml += '</div>';
+        
+        // 保留分页导航，只替换内容部分
+        const paginationHtml = `
+            <div class="quick-tradeup-pagination">
+                <button class="pagination-btn" onclick="UserInventoryEnhanced.prevResultPage()" ${this.currentResultIndex === 0 ? 'disabled' : ''}>◀ 上一页</button>
+                <span class="pagination-info">${this.currentResultIndex + 1} / ${this.quickTradeupResults.length}</span>
+                <button class="pagination-btn" onclick="UserInventoryEnhanced.nextResultPage()" ${this.currentResultIndex >= this.quickTradeupResults.length - 1 ? 'disabled' : ''}>下一页 ▶</button>
+            </div>
+            <div class="quick-tradeup-summary">
+                共完成 ${this.quickTradeupResults.length} 次汰换
+            </div>
+        `;
+        
+        resultDiv.className = 'tradeup-result success';
+        resultDiv.innerHTML = `
+            <div class="tradeup-summary">
+                <div class="tradeup-summary-title">✅ 第 ${index + 1} 次汰换</div>
+                <div class="tradeup-summary-details">
+                    <div><span class="summary-label">目标产物:</span> <span class="summary-value">${targetSkin.name}</span></div>
+                    <div><span class="summary-label">目标磨损:</span> <span class="summary-value">${targetWear.toFixed(6)}</span></div>
+                    <div><span class="summary-label">结果磨损:</span> <span class="summary-value highlight">${resultingWear.toFixed(6)}</span></div>
+                </div>
+            </div>
+            ${skinListHtml}
+            ${paginationHtml}
+        `;
+        
+        resultDiv.classList.add('show');
+        
+        // 保存当前查看的结果
+        this.currentTradeupResult = result;
+        
+        // 启用确认和复制按钮
+        const confirmBtn = document.getElementById('tradeupConfirmBtn');
+        const copyScriptBtn = document.getElementById('tradeupCopyScriptBtn');
+        if (confirmBtn) confirmBtn.disabled = false;
+        if (copyScriptBtn) copyScriptBtn.disabled = false;
+    },
+    
+    // 上一页
+    prevResultPage: function() {
+        if (this.currentResultIndex > 0) {
+            this.currentResultIndex--;
+            this.displayResultPage(this.currentResultIndex);
+        }
+    },
+    
+    // 下一页
+    nextResultPage: function() {
+        if (this.currentResultIndex < this.quickTradeupResults.length - 1) {
+            this.currentResultIndex++;
+            this.displayResultPage(this.currentResultIndex);
+        }
+    },
+    
+    // 执行内部计算（不备份数据）
+    executeTradeupInternal: function() {
+        const resultDiv = document.getElementById('tradeupResult');
+        resultDiv.className = 'tradeup-result';
+        resultDiv.innerHTML = '';
+        
+        const targetSkinName = document.getElementById('targetSkinName').value.trim();
+        const targetWearValue = parseFloat(document.getElementById('targetWearValue').value.trim());
+        const targetMinWearValue = parseFloat(document.getElementById('targetMinWearValue').value.trim());
+        
+        if (!targetSkinName || isNaN(targetWearValue) || isNaN(targetMinWearValue)) {
+            return;
+        }
+        
+        if (targetMinWearValue >= targetWearValue) {
+            return;
+        }
+        
+        const filteredSkins = this.getFilteredSkins();
+        if (!filteredSkins || filteredSkins.length === 0) {
+            return;
+        }
+        
+        const targetSkin = this.findTargetSkin(targetSkinName);
+        if (!targetSkin) {
+            return;
+        }
+        
+        const lowerGrade = this.getLowerGrade(targetSkin.grade);
+        if (!lowerGrade) {
+            return;
+        }
+        
+        if (targetWearValue < targetSkin.minWear || targetWearValue > targetSkin.maxWear) {
+            return;
+        }
+        
+        const targetConvertedSum = this.calculateConvertedWear(targetWearValue, targetSkin.minWear, targetSkin.maxWear) * 10;
+        
+        if (!this.selectedCrates[targetSkin.crate]) {
+            return;
+        }
+        
+        this.toggleCrateQuantitySection();
+        
+        const candidateSkins = filteredSkins.filter(skin => {
+            return skin.grade === lowerGrade && this.selectedCrates[skin.crate];
+        });
+        
+        if (candidateSkins.length < 10) {
+            return;
+        }
+        
+        candidateSkins.forEach(skin => {
+            skin.convertedWear = this.calculateConvertedWear(skin.wear, skin.minWear, skin.maxWear);
+            
+            if (window.originalSkinsData && window.originalSkinsData.skins) {
+                let position = -1;
+                for (let i = window.originalSkinsData.skins.length - 1; i >= 0; i--) {
+                    if (window.originalSkinsData.skins[i].originalName === skin.originalName && 
+                        window.originalSkinsData.skins[i].wear === skin.wear) {
+                        position = i;
+                        break;
+                    }
+                }
+                skin.originalPosition = position !== -1 ? (position + 1) : 0;
+            } else {
+                skin.originalPosition = 0;
+            }
+        });
+        
+        candidateSkins.sort((a, b) => b.originalPosition - a.originalPosition);
+        
+        let bestResult = null;
+        
+        const useQuantityControl = document.getElementById('useQuantityControl');
+        const useQuantityControlChecked = useQuantityControl && useQuantityControl.checked;
+        
+        if (!useQuantityControlChecked) {
+            bestResult = this.executeTradeupOriginal(candidateSkins, targetConvertedSum);
+        } else {
+            const quantityResult = this.executeTradeupWithQuantityControl(candidateSkins, targetConvertedSum);
+            
+            if (quantityResult && quantityResult.error) {
+                resultDiv.className = 'tradeup-result error';
+                resultDiv.innerHTML = quantityResult.message;
+                return;
+            }
+            
+            bestResult = quantityResult;
+        }
+        
+        if (!bestResult) {
+            return;
+        }
+        
+        const resultingWear = this.calculateUpperWear(bestResult.sum, targetSkin.minWear, targetSkin.maxWear);
+        
+        if (resultingWear > targetWearValue) {
+            return;
+        }
+        
+        // 显示成功结果
+        
+        // 在显示结果前，按照原始位置从大到小排序
+        bestResult.group.sort((a, b) => b.originalPosition - a.originalPosition);
+        
+        // 重新计算所有皮肤的原始位置（基于排序后的顺序）
+        if (bestResult.group && bestResult.group.length > 0) {
+            bestResult.group.forEach((skin, index) => {
+                // 获取当前皮肤级别的所有皮肤
+                const allSkinsInGrade = window.originalSkinsData.skins.filter(s => 
+                    s.grade === skin.grade
+                );
+                
+                // 根据皮肤名称和磨损值精确匹配位置
+                let positionInAll = -1;
+                for (let i = allSkinsInGrade.length - 1; i >= 0; i--) {
+                    if (allSkinsInGrade[i].originalName === skin.originalName && 
+                        allSkinsInGrade[i].wear === skin.wear) {
+                        positionInAll = i;
+                        break;
+                    }
+                }
+                
+                // 原始位置是从1开始计数的
+                skin.originalPosition = positionInAll !== -1 ? (positionInAll + 1) : 0;
+            });
+        }
+        
+        let skinListHtml = '<div class="tradeup-skin-list">';
+        bestResult.group.forEach((skin, index) => {
+            const colorClass = this.getCrateColorClass(skin.crate, true);
+            skinListHtml += `
+                <div class="tradeup-skin-item ${colorClass}">
+                    <div class="tradeup-skin-main">
+                        <div class="tradeup-skin-name">
+                            <span class="tradeup-order">#${index + 1}</span>
+                            ${skin.skin}
+                        </div>
+                        <div class="tradeup-skin-details">
+                            <div class="tradeup-skin-info-line">
+                                <span class="tradeup-skin-crate">${skin.crate}</span>
+                                <span class="tradeup-skin-order-info">原始位置：${skin.originalPosition}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tradeup-skin-wear">${skin.wear}</div>
+                </div>
+            `;
+        });
+        skinListHtml += '</div>';
+        
+        resultDiv.className = 'tradeup-result success';
+        resultDiv.innerHTML = `
+            <div class="tradeup-summary">
+                <div class="tradeup-summary-title">✅ 找到最佳组合！</div>
+                <div class="tradeup-summary-details">
+                    <div><span class="summary-label">目标产物:</span> <span class="summary-value">${targetSkin.name}</span></div>
+                    <div><span class="summary-label">目标磨损:</span> <span class="summary-value">${targetWearValue.toFixed(6)}</span></div>
+                    <div><span class="summary-label">结果磨损:</span> <span class="summary-value highlight">${resultingWear.toFixed(6)}</span></div>
+                </div>
+            </div>
+            ${skinListHtml}
+        `;
+        
+        resultDiv.classList.add('show');
+        
+        // 保存当前结果并启用确认和复制按钮
+        this.currentTradeupResult = {
+            skins: bestResult.group,
+            targetSkin: targetSkin,
+            targetWear: targetWearValue,
+            resultingWear: resultingWear
+        };
+        
+        const confirmBtn = document.getElementById('tradeupConfirmBtn');
+        const copyScriptBtn = document.getElementById('tradeupCopyScriptBtn');
+        if (confirmBtn && copyScriptBtn) {
+            confirmBtn.disabled = false;
+            copyScriptBtn.disabled = false;
+        }
+    },
+    
+    // 执行确认并清空（内部方法，不备份数据）
+    doConfirmAndClear: function(skipButtonState = false) {
+        if (!this.currentTradeupResult) {
+            return;
+        }
+        
+        const skinsToRemove = this.currentTradeupResult.skins;
+        const targetSkin = this.currentTradeupResult.targetSkin;
+        
+        if (this.processedData && this.processedData.matched) {
+            const skinsToRemoveSet = new Set(skinsToRemove.map(s => `${s.skin}-${s.wear}`));
+            
+            this.processedData.matched = this.processedData.matched.filter(skin => {
+                return !skinsToRemoveSet.has(`${skin.skin}-${skin.wear}`);
+            });
+            
+            this.processedData.summary.totalMatched = this.processedData.matched.length;
+            this.processedData.summary.totalUnmatched = this.processedData.unmatched.length;
+            this.processedData.summary.matchRate = this.processedData.summary.totalProcessed > 0 ? 
+                (this.processedData.summary.totalMatched / this.processedData.summary.totalProcessed * 100).toFixed(2) : 0;
+            
+            window.userProcessedData = this.processedData;
+        }
+        
+        if (window.originalSkinsData && window.originalSkinsData.skins) {
+            const skinsToRemoveSet = new Set(skinsToRemove.map(s => `${s.originalName}-${s.wear}`));
+            
+            window.originalSkinsData.skins = window.originalSkinsData.skins.filter(skin => {
+                return !skinsToRemoveSet.has(`${skin.originalName}-${skin.wear}`);
+            });
+            
+            if (targetSkin) {
+                const upperGradeSkin = {
+                    originalName: '合成产物',
+                    processedName: '合成产物',
+                    wear: 0.111111111,
+                    grade: targetSkin.grade
+                };
+                window.originalSkinsData.skins.unshift(upperGradeSkin);
+            }
+        }
+        
+        const resultDiv = document.getElementById('tradeupResult');
+        resultDiv.className = 'tradeup-result';
+        resultDiv.innerHTML = '';
+        
+        if (!skipButtonState) {
+            const confirmBtn = document.getElementById('tradeupConfirmBtn');
+            const copyScriptBtn = document.getElementById('tradeupCopyScriptBtn');
+            if (confirmBtn) confirmBtn.disabled = true;
+            if (copyScriptBtn) copyScriptBtn.disabled = true;
+        }
+        
+        this.currentTradeupResult = null;
+    },
+
     // 从localStorage加载保存的记录
     loadSavedRecords: function() {
         try {
@@ -804,6 +1491,13 @@ const UserInventoryEnhanced = {
     // 执行一键汰换
     executeTradeup: function() {
         const resultDiv = document.getElementById('tradeupResult');
+        
+        // 检查是否已经有汰换结果且未确认/回退
+        if ((this.currentTradeupResult || (this.quickTradeupResults && this.quickTradeupResults.length > 0)) && this.backupData) {
+            // 已经有汰换结果且未确认/回退，不执行操作
+            return;
+        }
+        
         resultDiv.className = 'tradeup-result';
         resultDiv.innerHTML = '';
         
@@ -921,6 +1615,9 @@ const UserInventoryEnhanced = {
         
         let bestResult = null;
         
+        // 在执行计算前备份数据（只在第一次执行时备份）
+        this.backupCurrentData();
+        
         // 在执行汰换计算前保存用户设置的皮肤数量
         const originalCrateQuantities = {...this.crateQuantities};
         
@@ -988,27 +1685,26 @@ const UserInventoryEnhanced = {
         // 在显示结果前，按照原始位置从大到小排序
         bestResult.group.sort((a, b) => b.originalPosition - a.originalPosition);
         
-        // 序号1的位置保持筛选前的，序号2-10的位置重新计算为筛选后的
+        // 重新计算所有皮肤的原始位置（基于排序后的顺序）
         if (window.originalSkinsData && window.originalSkinsData.skins) {
             bestResult.group.forEach((skin, index) => {
-                // 序号1的皮肤（index 0）保持不变
-                if (index === 0) return;
-                
-                // 序号2-10的皮肤，计算筛选后的位置
-                const filteredSkins = window.originalSkinsData.skins.filter(s => 
+                // 获取当前皮肤级别的所有皮肤
+                const allSkinsInGrade = window.originalSkinsData.skins.filter(s => 
                     s.grade === skin.grade
                 );
                 
-                let positionInFiltered = -1;
-                for (let i = filteredSkins.length - 1; i >= 0; i--) {
-                    if (filteredSkins[i].originalName === skin.originalName && 
-                        filteredSkins[i].wear === skin.wear) {
-                        positionInFiltered = i;
+                // 根据皮肤名称和磨损值精确匹配位置
+                let positionInAll = -1;
+                for (let i = allSkinsInGrade.length - 1; i >= 0; i--) {
+                    if (allSkinsInGrade[i].originalName === skin.originalName && 
+                        allSkinsInGrade[i].wear === skin.wear) {
+                        positionInAll = i;
                         break;
                     }
                 }
                 
-                skin.originalPosition = positionInFiltered !== -1 ? (positionInFiltered + 1) : 0;
+                // 原始位置是从1开始计数的
+                skin.originalPosition = positionInAll !== -1 ? (positionInAll + 1) : 0;
             });
         }
         
@@ -1162,22 +1858,18 @@ const UserInventoryEnhanced = {
         resultDiv.className = 'tradeup-result';
         resultDiv.innerHTML = '';
         
-        // 禁用确认和复制按钮
+        // 禁用确认、复制和取消汰换按钮
         const confirmBtn = document.getElementById('tradeupConfirmBtn');
         const copyScriptBtn = document.getElementById('tradeupCopyScriptBtn');
-        if (confirmBtn && copyScriptBtn) {
+        const rollbackBtn = document.getElementById('tradeupRollbackBtn');
+        if (confirmBtn && copyScriptBtn && rollbackBtn) {
             confirmBtn.disabled = true;
             copyScriptBtn.disabled = true;
+            rollbackBtn.disabled = true;
         }
         
-        // 隐藏弹出窗口按钮
-        const popupBtn = document.getElementById('tradeupPopupBtn');
-        if (popupBtn) {
-            popupBtn.style.display = 'none';
-        }
-        
-        // 清空当前结果
-        this.currentTradeupResult = null;
+        // 清空备份数据（表示已经确认，无法取消）
+        this.backupData = null;
         
         // 重置筛选下拉框
         const crateSelect = document.getElementById('crateSelect');
@@ -1255,6 +1947,17 @@ const UserInventoryEnhanced = {
 
     // 生成自动脚本内容
     generateAutoScript: function() {
+        // 如果是快速汰换模式且有多个结果，生成合并脚本
+        if (this.quickTradeupResults && this.quickTradeupResults.length > 1) {
+            return this.generateQuickTradeupScript();
+        }
+        
+        // 单个结果的原有逻辑
+        return this.generateSingleScript();
+    },
+    
+    // 生成单个汰换脚本
+    generateSingleScript: function() {
         if (!this.currentTradeupResult || !this.currentTradeupResult.skins) {
             return '';
         }
@@ -1490,6 +2193,71 @@ const UserInventoryEnhanced = {
         
         return scriptContent;
     },
+    
+    // 生成快速汰换的合并脚本
+    generateQuickTradeupScript: function() {
+        if (!this.quickTradeupResults || this.quickTradeupResults.length === 0) {
+            return '';
+        }
+        
+        let scriptContent = '# 快速汰换自动脚本 - 合并多次执行\n';
+        scriptContent += `# 共 ${this.quickTradeupResults.length} 次汰换\n\n`;
+        
+        // 为每个结果生成脚本
+        this.quickTradeupResults.forEach((result, resultIndex) => {
+            scriptContent += `# 第 ${resultIndex + 1} 次汰换\n`;
+            scriptContent += `# 目标产物: ${result.targetSkin.name}, 目标磨损: ${result.targetWear.toFixed(6)}, 结果磨损: ${result.resultingWear.toFixed(6)}\n`;
+            
+            // 临时设置当前结果，以便使用原有的脚本生成逻辑
+            const originalCurrentResult = this.currentTradeupResult;
+            this.currentTradeupResult = result;
+            
+            // 生成单个脚本（避免递归调用）
+            const singleScript = this.generateSingleScript();
+            
+            // 恢复原始结果
+            this.currentTradeupResult = originalCurrentResult;
+            
+            // 移除单个脚本中的固定操作部分（我们会在最后统一添加）
+            const lines = singleScript.split('\n');
+            let filteredScript = '';
+            let inFixedSection = false;
+            
+            for (const line of lines) {
+                if (line.includes('# 固定操作')) {
+                    inFixedSection = true;
+                    continue;
+                }
+                if (inFixedSection && line.trim() === '') {
+                    inFixedSection = false;
+                    continue;
+                }
+                if (!inFixedSection) {
+                    filteredScript += line + '\n';
+                }
+            }
+            
+            scriptContent += filteredScript;
+            
+            // 如果不是最后一次，添加确认操作
+            if (resultIndex < this.quickTradeupResults.length - 1) {
+                scriptContent += '# 确认本次汰换\n';
+                scriptContent += 'move coord17 0.1\n';
+                scriptContent += 'click left 1\n';
+                scriptContent += 'wait 0.5\n';
+                scriptContent += '# 等待界面刷新\n';
+                scriptContent += 'wait 2\n\n';
+            }
+        });
+        
+        // 添加最终的固定操作
+        scriptContent += '# 最终确认\n';
+        scriptContent += 'move coord17 0.1\n';
+        scriptContent += 'click left 1\n';
+        scriptContent += 'wait 0.5\n';
+        
+        return scriptContent;
+    },
 
     // 复制自动脚本到剪贴板
     copyAutoScript: function() {
@@ -1653,6 +2421,20 @@ document.addEventListener('DOMContentLoaded', function() {
     if (tradeupConfirmBtn) {
         tradeupConfirmBtn.addEventListener('click', function() {
             UserInventoryEnhanced.confirmAndClear();
+        });
+    }
+    
+    const tradeupQuickBtn = document.getElementById('tradeupQuickBtn');
+    if (tradeupQuickBtn) {
+        tradeupQuickBtn.addEventListener('click', function() {
+            UserInventoryEnhanced.quickTradeup();
+        });
+    }
+    
+    const tradeupRollbackBtn = document.getElementById('tradeupRollbackBtn');
+    if (tradeupRollbackBtn) {
+        tradeupRollbackBtn.addEventListener('click', function() {
+            UserInventoryEnhanced.rollbackData();
         });
     }
     

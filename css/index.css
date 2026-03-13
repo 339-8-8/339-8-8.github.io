@@ -1736,11 +1736,23 @@ body {
     color: white;
 }
 
+.tradeup-btn-quick {
+    background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+    color: white;
+}
+
+.tradeup-btn-rollback {
+    background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%);
+    color: white;
+}
+
 .tradeup-btn-copy-script {
     background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
     color: white;
 }
 
+.tradeup-btn-quick:disabled,
+.tradeup-btn-rollback:disabled,
 .tradeup-btn-copy-script:disabled {
     background: linear-gradient(135deg, #a0aec0 0%, #718096 100%);
     color: #e2e8f0;
@@ -1748,9 +1760,106 @@ body {
     box-shadow: none;
 }
 
+.tradeup-btn-quick:disabled:hover,
+.tradeup-btn-rollback:disabled:hover,
 .tradeup-btn-copy-script:disabled:hover {
     transform: none;
     box-shadow: none;
+}
+
+.quick-tradeup-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.quick-tradeup-progress {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.progress-bar {
+    width: 300px;
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    position: relative;
+}
+
+.progress-indicator {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #4299e1, #63b3ed, #4299e1);
+    background-size: 200% 100%;
+    animation: progress-indeterminate 2s infinite linear;
+}
+
+@keyframes progress-indeterminate {
+    0% {
+        transform: translateX(-100%);
+    }
+    50% {
+        transform: translateX(0%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.progress-text {
+    font-size: 16px;
+    color: #4a5568;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.progress-subtext {
+    font-size: 12px;
+    color: #718096;
+}
+
+.pagination-btn {
+    padding: 8px 16px;
+    border: 1px solid #4299e1;
+    background: #4299e1;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: #3182ce;
+}
+
+.pagination-btn:disabled {
+    background: #a0aec0;
+    border-color: #a0aec0;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.pagination-info {
+    font-size: 14px;
+    font-weight: 500;
+    color: #4a5568;
+}
+
+.quick-tradeup-summary {
+    text-align: center;
+    margin-top: 8px;
+    font-size: 13px;
+    color: #718096;
 }
 
 .tradeup-btn-fetch:hover {
