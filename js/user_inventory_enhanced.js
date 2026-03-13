@@ -114,16 +114,12 @@ const UserInventoryEnhanced = {
     quickTradeup: function() {
         const self = this;
         const resultDiv = document.getElementById('tradeupResult');
-        const quickBtn = document.getElementById('tradeupQuickBtn');
         
         // 检查是否已经有汰换结果且未确认/回退
         if ((this.currentTradeupResult || (this.quickTradeupResults && this.quickTradeupResults.length > 0)) && this.backupData) {
             // 已经有汰换结果且未确认/回退，不执行操作
             return;
         }
-        
-        // 禁用快速汰换按钮，防止重复点击
-        if (quickBtn) quickBtn.disabled = true;
         
         // 显示进度条
         resultDiv.className = 'tradeup-result';
@@ -151,7 +147,6 @@ const UserInventoryEnhanced = {
     executeQuickTradeupBatch: function() {
         const self = this;
         const resultDiv = document.getElementById('tradeupResult');
-        const quickBtn = document.getElementById('tradeupQuickBtn');
         
         // 在开始计算前备份数据（只有在第一次执行时）
         if (!this.backupData) {
@@ -182,7 +177,6 @@ const UserInventoryEnhanced = {
                     self.backupData = null;
                     const rollbackBtn = document.getElementById('tradeupRollbackBtn');
                     if (rollbackBtn) rollbackBtn.disabled = true;
-                    if (quickBtn) quickBtn.disabled = false;
                 }
                 return;
             }
@@ -203,7 +197,6 @@ const UserInventoryEnhanced = {
                     self.backupData = null;
                     const rollbackBtn = document.getElementById('tradeupRollbackBtn');
                     if (rollbackBtn) rollbackBtn.disabled = true;
-                    if (quickBtn) quickBtn.disabled = false;
                 }
                 return;
             }
@@ -252,7 +245,6 @@ const UserInventoryEnhanced = {
                     const rollbackBtn = document.getElementById('tradeupRollbackBtn');
                     if (rollbackBtn) rollbackBtn.disabled = true;
                 }
-                if (quickBtn) quickBtn.disabled = false;
             }
             } catch (error) {
                 console.error('快速汰换计算错误:', error);
@@ -268,7 +260,6 @@ const UserInventoryEnhanced = {
                     const rollbackBtn = document.getElementById('tradeupRollbackBtn');
                     if (rollbackBtn) rollbackBtn.disabled = true;
                 }
-                if (quickBtn) quickBtn.disabled = false;
             }
         }
         
@@ -310,6 +301,7 @@ const UserInventoryEnhanced = {
         }
         
         const targetConvertedSum = this.calculateConvertedWear(targetWearValue, targetSkin.minWear, targetSkin.maxWear) * 10;
+        const minConvertedSum = this.calculateConvertedWear(targetMinWearValue, targetSkin.minWear, targetSkin.maxWear) * 10;
         
         if (!this.selectedCrates[targetSkin.crate]) {
             return;
@@ -330,11 +322,11 @@ const UserInventoryEnhanced = {
         const useQuantityControlChecked = useQuantityControl && useQuantityControl.checked;
         
         if (!useQuantityControlChecked) {
-            const result = UserInventoryEnhanced.executeTradeupOriginal(candidateSkins, targetConvertedSum);
+            const result = UserInventoryEnhanced.executeTradeupOriginal(candidateSkins, targetConvertedSum, minConvertedSum);
             if (result && result.group && result.group.length === 10) {
                 const resultingWear = this.calculateUpperWear(result.sum, targetSkin.minWear, targetSkin.maxWear);
                 
-                if (resultingWear <= targetWearValue) {
+                if (resultingWear >= targetMinWearValue && resultingWear <= targetWearValue) {
                     this.currentTradeupResult = {
                         skins: result.group,
                         targetSkin: targetSkin,
@@ -344,11 +336,11 @@ const UserInventoryEnhanced = {
                 }
             }
         } else {
-            const result = UserInventoryEnhanced.executeTradeupWithQuantityControl(candidateSkins, targetConvertedSum);
+            const result = UserInventoryEnhanced.executeTradeupWithQuantityControl(candidateSkins, targetConvertedSum, minConvertedSum);
             if (result && result.group && result.group.length === 10) {
                 const resultingWear = this.calculateUpperWear(result.sum, targetSkin.minWear, targetSkin.maxWear);
                 
-                if (resultingWear <= targetWearValue) {
+                if (resultingWear >= targetMinWearValue && resultingWear <= targetWearValue) {
                     this.currentTradeupResult = {
                         skins: result.group,
                         targetSkin: targetSkin,
@@ -466,6 +458,7 @@ const UserInventoryEnhanced = {
         this.currentTradeupResult = result;
         
         // 启用确认和复制按钮
+        // 注意：快速汰换按钮保持禁用，直到用户确认并清空或取消汰换
         const confirmBtn = document.getElementById('tradeupConfirmBtn');
         const copyScriptBtn = document.getElementById('tradeupCopyScriptBtn');
         if (confirmBtn) confirmBtn.disabled = false;
@@ -526,6 +519,7 @@ const UserInventoryEnhanced = {
         }
         
         const targetConvertedSum = this.calculateConvertedWear(targetWearValue, targetSkin.minWear, targetSkin.maxWear) * 10;
+        const minConvertedSum = this.calculateConvertedWear(targetMinWearValue, targetSkin.minWear, targetSkin.maxWear) * 10;
         
         if (!this.selectedCrates[targetSkin.crate]) {
             return;
@@ -567,9 +561,9 @@ const UserInventoryEnhanced = {
         const useQuantityControlChecked = useQuantityControl && useQuantityControl.checked;
         
         if (!useQuantityControlChecked) {
-            bestResult = this.executeTradeupOriginal(candidateSkins, targetConvertedSum);
+            bestResult = this.executeTradeupOriginal(candidateSkins, targetConvertedSum, minConvertedSum);
         } else {
-            const quantityResult = this.executeTradeupWithQuantityControl(candidateSkins, targetConvertedSum);
+            const quantityResult = this.executeTradeupWithQuantityControl(candidateSkins, targetConvertedSum, minConvertedSum);
             
             if (quantityResult && quantityResult.error) {
                 resultDiv.className = 'tradeup-result error';
@@ -586,7 +580,7 @@ const UserInventoryEnhanced = {
         
         const resultingWear = this.calculateUpperWear(bestResult.sum, targetSkin.minWear, targetSkin.maxWear);
         
-        if (resultingWear > targetWearValue) {
+        if (resultingWear < targetMinWearValue || resultingWear > targetWearValue) {
             return;
         }
         
@@ -1565,6 +1559,7 @@ const UserInventoryEnhanced = {
         }
         
         const targetConvertedSum = this.calculateConvertedWear(targetWearValue, targetSkin.minWear, targetSkin.maxWear) * 10;
+        const minConvertedSum = this.calculateConvertedWear(targetMinWearValue, targetSkin.minWear, targetSkin.maxWear) * 10;
         
         // 检查目标产物武器箱是否被选中
         if (!this.selectedCrates[targetSkin.crate]) {
@@ -1629,10 +1624,10 @@ const UserInventoryEnhanced = {
         
         if (!useQuantityControlChecked) {
             // 开关关闭，使用第一套算法（原始算法）
-            bestResult = this.executeTradeupOriginal(candidateSkins, targetConvertedSum);
+            bestResult = this.executeTradeupOriginal(candidateSkins, targetConvertedSum, minConvertedSum);
         } else {
             // 开关开启，使用第二套算法（带数量控制）
-            const quantityResult = this.executeTradeupWithQuantityControl(candidateSkins, targetConvertedSum);
+            const quantityResult = this.executeTradeupWithQuantityControl(candidateSkins, targetConvertedSum, minConvertedSum);
             
             // 处理算法返回的错误信息
             if (quantityResult && quantityResult.error) {
@@ -2002,18 +1997,49 @@ const UserInventoryEnhanced = {
         scriptContent += 'move coord1 0.1\n';
         scriptContent += 'wait 1\n\n';
         
+        // 检查是否有库存快照（快速汰换模式）
+        const inventorySnapshot = this.currentTradeupResult.inventorySnapshot;
+        const useSnapshot = inventorySnapshot && inventorySnapshot.originalSkinsData;
+        
         // 创建即时筛选数据映射
         const instantFilteredSkinsMap = {};
         // 为每个皮肤级别创建初始筛选数据（包含所有皮肤）
         const allGrades = [...new Set(skins.map(skin => skin.grade))];
         allGrades.forEach(grade => {
-            instantFilteredSkinsMap[grade] = window.originalSkinsData.skins.filter(s => 
-                s.grade === grade
-            );
+            if (useSnapshot) {
+                instantFilteredSkinsMap[grade] = inventorySnapshot.originalSkinsData.skins.filter(s => 
+                    s.grade === grade
+                );
+            } else {
+                instantFilteredSkinsMap[grade] = window.originalSkinsData.skins.filter(s => 
+                    s.grade === grade
+                );
+            }
         });
         
         skins.forEach((skin, skinIndex) => {
-            const originalPosition = skin.originalPosition || 0;
+            let originalPosition = skin.originalPosition || 0;
+            
+            // 如果没有原始位置，尝试从库存快照中计算
+            if (originalPosition === 0 && useSnapshot) {
+                const snapshotSkins = inventorySnapshot.originalSkinsData.skins;
+                const allSkinsInGrade = snapshotSkins.filter(s => s.grade === skin.grade);
+                
+                // 根据皮肤名称和磨损值精确匹配位置
+                let positionInAll = -1;
+                for (let i = allSkinsInGrade.length - 1; i >= 0; i--) {
+                    if (allSkinsInGrade[i].originalName === skin.originalName && 
+                        allSkinsInGrade[i].wear === skin.wear) {
+                        positionInAll = i;
+                        break;
+                    }
+                }
+                
+                if (positionInAll !== -1) {
+                    originalPosition = positionInAll + 1;
+                }
+            }
+            
             if (originalPosition === 0) {
                 scriptContent += `# 皮肤${skinIndex + 1}: 无法获取原始位置\n\n`;
                 return;
@@ -2022,7 +2048,8 @@ const UserInventoryEnhanced = {
             scriptContent += `# 皮肤${skinIndex + 1}: 原始位置 ${originalPosition}\n`;
             
             // 检查是否有原始皮肤数据
-            if (!window.originalSkinsData || !window.originalSkinsData.skins) {
+            const originalSkinsData = useSnapshot ? inventorySnapshot.originalSkinsData : window.originalSkinsData;
+            if (!originalSkinsData || !originalSkinsData.skins) {
                 scriptContent += `# 无法获取完整皮肤列表\n\n`;
                 return;
             }
@@ -2031,7 +2058,7 @@ const UserInventoryEnhanced = {
             let instantFilteredSkins = instantFilteredSkinsMap[skin.grade];
             if (!instantFilteredSkins) {
                 // 如果该级别的筛选数据不存在，重新创建
-                instantFilteredSkins = window.originalSkinsData.skins.filter(s => 
+                instantFilteredSkins = originalSkinsData.skins.filter(s => 
                     s.grade === skin.grade
                 );
                 instantFilteredSkinsMap[skin.grade] = instantFilteredSkins;
@@ -2077,7 +2104,7 @@ const UserInventoryEnhanced = {
             // 计算16个为一组
             const groupSize = 16;
             // 序号1使用原始皮肤总数，序号2-10使用即时筛选数据数量
-            const useTotalSkins = skinIndex === 0 ? window.originalSkinsData.skins.length : instantFilteredSkins.length;
+            const useTotalSkins = skinIndex === 0 ? originalSkinsData.skins.length : instantFilteredSkins.length;
             const totalGroups = Math.ceil(useTotalSkins / groupSize);
             const skinGroup = Math.ceil(instantPosition / groupSize);
             const isLastGroup = skinGroup === totalGroups;
@@ -2219,12 +2246,6 @@ const UserInventoryEnhanced = {
         scriptContent += 'move coord17 0.1\n';
         scriptContent += 'click left 1\n';
         scriptContent += 'wait 0.5\n';
-        scriptContent += 'move coord18 0.1\n';
-        scriptContent += 'click left 1\n';
-        scriptContent += 'wait 1.5\n';
-        scriptContent += 'move coord19 0.1\n';
-        scriptContent += 'click left 1\n';
-        scriptContent += 'wait 1\n';
         
         return scriptContent;
     },
@@ -2253,49 +2274,42 @@ const UserInventoryEnhanced = {
             // 恢复原始结果
             this.currentTradeupResult = originalCurrentResult;
             
-            // 移除单个脚本中的固定操作部分（我们会在最后统一添加）
+            // 只移除单个脚本末尾的固定操作部分（保留开头的"固定操作 鼠标移动"）
             const lines = singleScript.split('\n');
             let filteredScript = '';
-            let inFixedSection = false;
+            let foundFirstFixedOp = false;
             
-            for (const line of lines) {
-                if (line.includes('# 固定操作')) {
-                    inFixedSection = true;
-                    continue;
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                
+                // 检查是否是末尾的固定操作（在所有皮肤操作之后）
+                if (line.includes('# 固定操作') && foundFirstFixedOp) {
+                    // 跳过末尾的固定操作及其后续内容
+                    break;
                 }
-                if (inFixedSection && line.trim() === '') {
-                    inFixedSection = false;
-                    continue;
+                
+                // 标记已经过了第一个固定操作（鼠标移动）
+                if (line.includes('# 固定操作') && !foundFirstFixedOp) {
+                    foundFirstFixedOp = true;
                 }
-                if (!inFixedSection) {
-                    filteredScript += line + '\n';
-                }
+                
+                filteredScript += line + '\n';
             }
             
             scriptContent += filteredScript;
             
-            // 如果不是最后一次，添加确认操作
-            if (resultIndex < this.quickTradeupResults.length - 1) {
-                scriptContent += '# 确认本次汰换\n';
-                scriptContent += 'move coord17 0.1\n';
-                scriptContent += 'click left 1\n';
-                scriptContent += 'wait 0.5\n';
-                scriptContent += '# 等待界面刷新\n';
-                scriptContent += 'wait 2\n\n';
-            }
+            // 每次汰换都添加完整的固定操作
+            scriptContent += '# 固定操作\n';
+            scriptContent += 'move coord17 0.1\n';
+            scriptContent += 'click left 1\n';
+            scriptContent += 'wait 0.5\n';
+            scriptContent += 'move coord18 0.1\n';
+            scriptContent += 'click left 1\n';
+            scriptContent += 'wait 1.5\n';
+            scriptContent += 'move coord19 0.1\n';
+            scriptContent += 'click left 1\n';
+            scriptContent += 'wait 1\n';
         });
-        
-        // 添加最终的固定操作
-        scriptContent += '# 最终确认\n';
-        scriptContent += 'move coord17 0.1\n';
-        scriptContent += 'click left 1\n';
-        scriptContent += 'wait 0.5\n';
-        scriptContent += 'move coord18 0.1\n';
-        scriptContent += 'click left 1\n';
-        scriptContent += 'wait 1.5\n';
-        scriptContent += 'move coord19 0.1\n';
-        scriptContent += 'click left 1\n';
-        scriptContent += 'wait 1\n';
         
         return scriptContent;
     },
@@ -3080,9 +3094,9 @@ UserInventoryEnhanced.updateCrateQuantityUI = function() {
 };
 
 // 新的汰换算法：控制各武器箱参与皮肤数量
-UserInventoryEnhanced.executeTradeupWithQuantityControl = function(candidateSkins, targetConvertedSum) {
+UserInventoryEnhanced.executeTradeupWithQuantityControl = function(candidateSkins, targetConvertedSum, minConvertedSum) {
     if (!this.crateQuantities || Object.keys(this.crateQuantities).length === 0) {
-        return this.executeTradeupOriginal(candidateSkins, targetConvertedSum);
+        return this.executeTradeupOriginal(candidateSkins, targetConvertedSum, minConvertedSum);
     }
     
     // 按照武器箱分组
@@ -3111,13 +3125,13 @@ UserInventoryEnhanced.executeTradeupWithQuantityControl = function(candidateSkin
     }
     
     // 使用新的智能替换算法
-    return this.smartTradeupWithQuantityControl(candidateSkins, targetConvertedSum);
+    return this.smartTradeupWithQuantityControl(candidateSkins, targetConvertedSum, minConvertedSum);
 };
 
 // 智能汰换算法：先找最佳组合，再进行智能替换
-UserInventoryEnhanced.smartTradeupWithQuantityControl = function(candidateSkins, targetConvertedSum) {
+UserInventoryEnhanced.smartTradeupWithQuantityControl = function(candidateSkins, targetConvertedSum, minConvertedSum) {
     // 第一步：不按武器箱分组，直接使用原始算法找到最佳组合
-    const bestResult = this.executeTradeupOriginal(candidateSkins, targetConvertedSum);
+    const bestResult = this.executeTradeupOriginal(candidateSkins, targetConvertedSum, minConvertedSum);
     
     if (!bestResult) {
         return null; // 原始算法无法找到符合条件的组合
@@ -3132,7 +3146,7 @@ UserInventoryEnhanced.smartTradeupWithQuantityControl = function(candidateSkins,
     }
     
     // 第三步：进行智能替换，调整皮肤数量
-    return this.smartSkinReplacement(bestResult.group, candidateSkins, targetConvertedSum);
+    return this.smartSkinReplacement(bestResult.group, candidateSkins, targetConvertedSum, minConvertedSum);
 };
 
 // 统计组合中各武器箱的皮肤数量
@@ -3161,9 +3175,12 @@ UserInventoryEnhanced.validateQuantities = function(currentQuantities) {
 };
 
 // 智能皮肤替换算法
-UserInventoryEnhanced.smartSkinReplacement = function(originalGroup, allSkins, targetConvertedSum) {
+UserInventoryEnhanced.smartSkinReplacement = function(originalGroup, allSkins, targetConvertedSum, minConvertedSum) {
     let bestGroup = [...originalGroup];
     let bestSum = bestGroup.reduce((sum, skin) => sum + skin.convertedWear, 0);
+    
+    // 如果没有指定最低磨损值，默认为0
+    const minSum = minConvertedSum || 0;
     
     // 统计当前组合中各武器箱的皮肤数量
     const currentQuantities = this.countSkinsByCrate(bestGroup);
@@ -3219,8 +3236,8 @@ UserInventoryEnhanced.smartSkinReplacement = function(originalGroup, allSkins, t
                     const tempQuantities = this.countSkinsByCrate(tempGroup);
                     const isBetter = this.isQuantityBetter(tempQuantities, currentQuantities);
                     
-                    // 如果符合用户设置的皮肤数量且不超过目标磨损值
-                    if (tempSum <= targetConvertedSum && isBetter) {
+                    // 如果符合用户设置的皮肤数量且在磨损值范围内
+                    if (tempSum >= minSum && tempSum <= targetConvertedSum && isBetter) {
                         bestGroup = tempGroup;
                         bestSum = tempSum;
                         
@@ -3241,16 +3258,19 @@ UserInventoryEnhanced.smartSkinReplacement = function(originalGroup, allSkins, t
     // 最终验证数量是否符合要求
     if (this.validateQuantities(currentQuantities)) {
         // 第四步：在符合数量要求的基础上，优化磨损值使其更接近目标
-        return this.optimizeWearValue(bestGroup, allSkins, targetConvertedSum);
+        return this.optimizeWearValue(bestGroup, allSkins, targetConvertedSum, minSum);
     }
     
     return null;
 };
 
 // 优化磨损值，使其更接近目标产物磨损值
-UserInventoryEnhanced.optimizeWearValue = function(currentGroup, allSkins, targetConvertedSum) {
+UserInventoryEnhanced.optimizeWearValue = function(currentGroup, allSkins, targetConvertedSum, minConvertedSum) {
     let bestGroup = [...currentGroup];
     let bestSum = bestGroup.reduce((sum, skin) => sum + skin.convertedWear, 0);
+    
+    // 如果没有指定最低磨损值，默认为0
+    const minSum = minConvertedSum || 0;
     
     // 按武器箱分组
     const currentQuantities = this.countSkinsByCrate(bestGroup);
@@ -3288,8 +3308,8 @@ UserInventoryEnhanced.optimizeWearValue = function(currentGroup, allSkins, targe
                     
                     const tempSum = tempGroup.reduce((sum, skin) => sum + skin.convertedWear, 0);
                     
-                    // 检查是否更接近目标且不超过目标
-                    if (tempSum <= targetConvertedSum && tempSum > bestSum) {
+                    // 检查是否更接近目标且在磨损值范围内
+                    if (tempSum >= minSum && tempSum <= targetConvertedSum && tempSum > bestSum) {
                         bestGroup = tempGroup;
                         bestSum = tempSum;
                         improved = true;
@@ -3322,8 +3342,8 @@ UserInventoryEnhanced.optimizeWearValue = function(currentGroup, allSkins, targe
                 
                 const tempSum = tempGroup.reduce((sum, skin) => sum + skin.convertedWear, 0);
                 
-                // 如果不超过目标，且更接近目标
-                if (tempSum <= targetConvertedSum) {
+                // 如果在磨损值范围内，且更接近目标
+                if (tempSum >= minSum && tempSum <= targetConvertedSum) {
                     const diff = targetConvertedSum - tempSum;
                     if (diff < bestDiff) {
                         bestDiff = diff;
@@ -3362,7 +3382,7 @@ UserInventoryEnhanced.optimizeWearValue = function(currentGroup, allSkins, targe
                             
                             const tempSum = tempGroup.reduce((sum, skin) => sum + skin.convertedWear, 0);
                             
-                            if (tempSum <= targetConvertedSum) {
+                            if (tempSum >= minSum && tempSum <= targetConvertedSum) {
                                 const diff = targetConvertedSum - tempSum;
                                 if (diff < bestDiff) {
                                     bestDiff = diff;
@@ -3395,7 +3415,7 @@ UserInventoryEnhanced.optimizeWearValue = function(currentGroup, allSkins, targe
                     const combinedGroup = [...tempGroup, ...newCrateSkins];
                     const tempSum = combinedGroup.reduce((sum, skin) => sum + skin.convertedWear, 0);
                     
-                    if (tempSum <= targetConvertedSum) {
+                    if (tempSum >= minSum && tempSum <= targetConvertedSum) {
                         const diff = targetConvertedSum - tempSum;
                         if (diff < bestDiff) {
                             bestDiff = diff;
@@ -3516,16 +3536,20 @@ UserInventoryEnhanced.improvedGreedySwap = function(currentGroup, allSkins, targ
 };
 
 // 原始汰换算法（保持原有逻辑）
-UserInventoryEnhanced.executeTradeupOriginal = function(candidateSkins, targetConvertedSum) {
+UserInventoryEnhanced.executeTradeupOriginal = function(candidateSkins, targetConvertedSum, minConvertedSum) {
     let bestResult = null;
     let bestSum = -1;
+    
+    // 如果没有指定最低磨损值，默认为0
+    const minSum = minConvertedSum || 0;
     
     // 遍历所有可能的10个皮肤组合
     for (let i = 0; i <= candidateSkins.length - 10; i++) {
         const initialGroup = candidateSkins.slice(i, i + 10);
         const optimized = this.greedyOptimize(initialGroup, candidateSkins, targetConvertedSum);
         
-        if (optimized.sum > bestSum && optimized.sum <= targetConvertedSum) {
+        // 检查是否在磨损值范围内
+        if (optimized.sum >= minSum && optimized.sum <= targetConvertedSum && optimized.sum > bestSum) {
             bestSum = optimized.sum;
             bestResult = optimized;
         }
