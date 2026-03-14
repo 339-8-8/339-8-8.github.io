@@ -10,6 +10,19 @@ const state = {
     searchQuery: ''
 };
 
+// 当前版本号（每次更新时修改此值）
+const APP_VERSION = '26.3.14.2';
+
+// 更新公告内容
+const UPDATE_NOTES = `
+<h3>更新公告 v${APP_VERSION}</h3>
+<ul>
+    <li>优化选择多武器并控制数量时汰换算法，现在结果磨损和目标磨损更接近了</li>
+    <li>修复快速汰换中原始位置计算问题</li>
+</ul>
+<p class="update-tip">点击空白处或关闭按钮关闭此窗口</p>
+`;
+
 // 皮肤级别顺序
 const levelOrder = {
     '消费级': 1,
@@ -37,10 +50,40 @@ const elements = {
 function init() {
     renderCaseList();
     setupEventListeners();
+    checkUpdateNotes();
     
     // 默认选择第一个武器箱
     if (state.cases.length > 0) {
         selectCase(state.cases[0]);
+    }
+}
+
+// 检查是否需要显示更新公告
+function checkUpdateNotes() {
+    const lastVersion = localStorage.getItem('appVersion');
+    
+    if (lastVersion !== APP_VERSION) {
+        showUpdateNotes();
+        localStorage.setItem('appVersion', APP_VERSION);
+    }
+}
+
+// 显示更新公告
+function showUpdateNotes() {
+    const modal = document.getElementById('updateModal');
+    const content = document.getElementById('updateModalContent');
+    
+    if (modal && content) {
+        content.innerHTML = UPDATE_NOTES;
+        modal.style.display = 'flex';
+    }
+}
+
+// 关闭更新公告
+function closeUpdateNotes() {
+    const modal = document.getElementById('updateModal');
+    if (modal) {
+        modal.style.display = 'none';
     }
 }
 
