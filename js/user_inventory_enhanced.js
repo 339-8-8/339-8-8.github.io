@@ -498,6 +498,12 @@ const UserInventoryEnhanced = {
             ${paginationHtml}
         `;
         
+        // 显示结果区域
+        const quickResultsSection = document.getElementById('quickResultsSection');
+        if (quickResultsSection) {
+            quickResultsSection.style.display = 'block';
+        }
+        
         resultDiv.classList.add('show');
         
         // 保存当前查看的结果
@@ -1143,7 +1149,7 @@ const UserInventoryEnhanced = {
         const statusCount = document.getElementById('statusCount');
         const progressFill = document.getElementById('progressFill');
         const processBtn = document.getElementById('processBtn');
-        const processStatus = document.getElementById('processStatus');
+        const processStatusContainer = document.getElementById('processStatusContainer');
         
         const pastedText = pasteTextarea.value.trim();
         
@@ -1152,9 +1158,8 @@ const UserInventoryEnhanced = {
             return;
         }
         
-        // 隐藏按钮，显示进度条
-        processBtn.style.display = 'none';
-        processStatus.style.display = 'block';
+        // 显示进度条
+        processStatusContainer.style.display = 'block';
         
         // 更新状态
         statusText.textContent = '正在处理皮肤数据...';
@@ -1177,10 +1182,9 @@ const UserInventoryEnhanced = {
                 statusCount.textContent = '100%';
                 progressFill.style.width = '100%';
                 
-                // 隐藏进度条，显示按钮
+                // 隐藏进度条
                 setTimeout(() => {
-                    processStatus.style.display = 'none';
-                    processBtn.style.display = 'block';
+                    processStatusContainer.style.display = 'none';
                 }, 500);
                 
                 // 生成并保存文件
@@ -1195,6 +1199,12 @@ const UserInventoryEnhanced = {
                 this.initCrateSelection();
                 this.renderCrateList();
                 
+                // 隐藏默认提示
+                const quickDefaultHint = document.getElementById('quickDefaultHint');
+                if (quickDefaultHint) {
+                    quickDefaultHint.style.display = 'none';
+                }
+                
                 // 显示一键汰换区域
                 const tradeupSection = document.getElementById('tradeupSection');
                 if (tradeupSection) {
@@ -1206,18 +1216,11 @@ const UserInventoryEnhanced = {
                 const copyScriptBtn = document.getElementById('tradeupCopyScriptBtn');
                 if (confirmBtn && copyScriptBtn) {
                     confirmBtn.style.display = 'block';
-                    copyScriptBtn.style.display = 'block';
-                    confirmBtn.disabled = true;
                     copyScriptBtn.disabled = true;
                 }
-                
-                // 数据处理后，收起皮肤库存版块
-                const inventoryContent = document.getElementById('inventoryContent');
-                const inventoryToggle = document.getElementById('inventoryToggle');
-                if (inventoryContent && inventoryToggle) {
-                    inventoryContent.classList.add('collapsed');
-                    inventoryToggle.textContent = '▶';
-                    inventoryToggle.classList.add('collapsed');
+                if (copyScriptBtn) {
+                    copyScriptBtn.style.display = 'block';
+                    copyScriptBtn.disabled = true;
                 }
                 
                 // 弹出提示框显示处理结果
@@ -1228,9 +1231,8 @@ const UserInventoryEnhanced = {
                 statusText.textContent = '处理失败';
                 statusCount.textContent = '错误';
                 
-                // 隐藏进度条，显示按钮
-                processStatus.style.display = 'none';
-                processBtn.style.display = 'block';
+                // 隐藏进度条
+                processStatusContainer.style.display = 'none';
                 
                 alert('处理皮肤数据时出错：' + error.message);
             }
@@ -1298,7 +1300,6 @@ const UserInventoryEnhanced = {
     populateFilterOptions: function(matchedSkins) {
         const crateSelect = document.getElementById('crateSelect');
         const gradeSelect = document.getElementById('gradeSelect');
-        const skinSelect = document.getElementById('skinSelect');
         const filterSection = document.getElementById('filterSection');
         
         // 获取所有唯一的武器箱
@@ -1313,9 +1314,6 @@ const UserInventoryEnhanced = {
         // 初始填充所有级别
         this.updateGradeOptions(matchedSkins);
         
-        // 初始填充所有皮肤
-        this.updateSkinOptions(matchedSkins);
-        
         // 显示筛选区域
         filterSection.style.display = 'block';
         
@@ -1323,14 +1321,9 @@ const UserInventoryEnhanced = {
         const self = this;
         crateSelect.onchange = function() {
             self.updateGradeOptionsBasedOnCrate();
-            self.updateSkinOptionsBasedOnFilters();
             self.applyFilters();
         };
         gradeSelect.onchange = function() {
-            self.updateSkinOptionsBasedOnFilters();
-            self.applyFilters();
-        };
-        skinSelect.onchange = function() {
             self.applyFilters();
         };
     },
@@ -1348,23 +1341,6 @@ const UserInventoryEnhanced = {
         this.updateGradeOptions(filteredSkins);
     },
     
-    // 根据筛选条件更新皮肤选项
-    updateSkinOptionsBasedOnFilters: function() {
-        const crateSelect = document.getElementById('crateSelect');
-        const gradeSelect = document.getElementById('gradeSelect');
-        const allMatched = this.getMatchedSkins();
-        
-        let filteredSkins = allMatched;
-        if (crateSelect.value) {
-            filteredSkins = filteredSkins.filter(s => s.crate === crateSelect.value);
-        }
-        if (gradeSelect.value) {
-            filteredSkins = filteredSkins.filter(s => s.grade === gradeSelect.value);
-        }
-        
-        this.updateSkinOptions(filteredSkins);
-    },
-    
     // 更新皮肤级别选项
     updateGradeOptions: function(skins) {
         const gradeSelect = document.getElementById('gradeSelect');
@@ -1376,29 +1352,16 @@ const UserInventoryEnhanced = {
         });
     },
     
-    // 更新皮肤选项
-    updateSkinOptions: function(skins) {
-        const skinSelect = document.getElementById('skinSelect');
-        const skinNames = [...new Set(skins.map(s => s.skin))];
-        
-        skinSelect.innerHTML = '<option value="">全部皮肤</option>';
-        skinNames.forEach(skinName => {
-            skinSelect.innerHTML += `<option value="${skinName}">${skinName}</option>`;
-        });
-    },
-    
     // 应用筛选
     applyFilters: function() {
         const crateSelect = document.getElementById('crateSelect');
         const gradeSelect = document.getElementById('gradeSelect');
-        const skinSelect = document.getElementById('skinSelect');
         const allMatched = this.getMatchedSkins();
         
         const filtered = allMatched.filter(skin => {
             const crateMatch = !crateSelect.value || skin.crate === crateSelect.value;
             const gradeMatch = !gradeSelect.value || skin.grade === gradeSelect.value;
-            const skinMatch = !skinSelect.value || skin.skin === skinSelect.value;
-            return crateMatch && gradeMatch && skinMatch;
+            return crateMatch && gradeMatch;
         });
         
         this.filterAndDisplayCompact(filtered);
@@ -1818,6 +1781,12 @@ const UserInventoryEnhanced = {
             ${skinListHtml}
         `;
         
+        // 显示结果区域
+        const quickResultsSection = document.getElementById('quickResultsSection');
+        if (quickResultsSection) {
+            quickResultsSection.style.display = 'block';
+        }
+        
         // 添加动画效果
         resultDiv.classList.add('show');
         
@@ -1963,10 +1932,8 @@ const UserInventoryEnhanced = {
         // 重置筛选下拉框
         const crateSelect = document.getElementById('crateSelect');
         const gradeSelect = document.getElementById('gradeSelect');
-        const skinSelect = document.getElementById('skinSelect');
         if (crateSelect) crateSelect.value = '';
         if (gradeSelect) gradeSelect.value = '';
-        if (skinSelect) skinSelect.value = '';
         
         // 更新皮肤库存显示
         const importResults = document.getElementById('importResults');
@@ -2604,32 +2571,6 @@ document.addEventListener('DOMContentLoaded', function() {
         tradeupPopup.addEventListener('click', function(e) {
             if (e.target === tradeupPopup) {
                 UserInventoryEnhanced.hideTradeupPopup();
-            }
-        });
-    }
-    
-    // 帮助图标点击事件
-    const helpIcon = document.getElementById('helpIcon');
-    const helpModal = document.getElementById('helpModal');
-    const helpModalClose = document.getElementById('helpModalClose');
-    
-    if (helpIcon && helpModal) {
-        helpIcon.addEventListener('click', function() {
-            helpModal.classList.add('show');
-        });
-    }
-    
-    if (helpModalClose && helpModal) {
-        helpModalClose.addEventListener('click', function() {
-            helpModal.classList.remove('show');
-        });
-    }
-    
-    // 点击模态框外部关闭
-    if (helpModal) {
-        helpModal.addEventListener('click', function(e) {
-            if (e.target === helpModal) {
-                helpModal.classList.remove('show');
             }
         });
     }
