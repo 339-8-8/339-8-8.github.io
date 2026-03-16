@@ -764,6 +764,7 @@ html {
         overflow-y: auto;
         min-width: 1000px;
         min-height: 100vh;
+        background: #f7fafc;
     }
     
     .page-wrapper {
@@ -771,6 +772,7 @@ html {
         width: auto;
         overflow-x: auto;
         overflow-y: auto;
+        background: #f7fafc;
     }
     
     .container {
@@ -778,6 +780,7 @@ html {
         width: auto;
         overflow-x: visible;
         overflow-y: visible;
+        background: #f7fafc;
     }
     
     .main-content {
@@ -787,54 +790,65 @@ html {
         flex-wrap: nowrap;
         overflow-x: visible;
         overflow-y: visible;
+        background: #f7fafc;
     }
     
     .left-container {
         min-width: 300px;
         width: auto;
         flex-shrink: 0;
+        background: #f7fafc;
     }
     
     .right-container {
         min-width: 650px;
         width: auto;
         flex-shrink: 0;
+        background: #f7fafc;
     }
     
     /* 一键汰换页面移动端样式 */
     #quickPage .main-content {
         min-width: 1200px;
+        background: #f7fafc;
     }
     
     #quickPage .left-container {
         min-width: 350px;
+        background: #f7fafc;
     }
     
     #quickPage .right-container {
         min-width: 800px;
+        background: #f7fafc;
     }
     
     /* 反向汰换页面移动端样式 */
     #reversePage .main-content {
         min-width: 1000px;
+        background: #f7fafc;
     }
     
     #reversePage .left-container {
         min-width: 300px;
+        background: #f7fafc;
     }
     
     #reversePage .right-container {
         min-width: 650px;
+        background: #f7fafc;
     }
     
     /* 注意事项页面移动端样式 */
     #noticePage .main-content {
         min-width: 800px;
         justify-content: center;
+        background: #f7fafc;
     }
     
     #noticePage .notice-container {
         min-width: 700px;
+        background: #f7fafc;
     }
     
     /* 确保滚动条可见 */

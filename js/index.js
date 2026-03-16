@@ -48,6 +48,22 @@ const elements = {
 
 // 初始化应用
 function init() {
+    // 重新获取DOM元素，确保在DOM加载完成后
+    elements.searchInput = document.getElementById('searchInput');
+    elements.caseList = document.getElementById('caseList');
+    elements.levelSelect = document.getElementById('levelSelect');
+    elements.skinSelect = document.getElementById('skinSelect');
+    elements.wearInput = document.getElementById('wearInput');
+    elements.wearRange = document.getElementById('wearRange');
+    elements.calculateBtn = document.getElementById('calculateBtn');
+    elements.resultsContainer = document.getElementById('resultsContainer');
+    
+    // 检查是否所有必需的元素都存在
+    if (!elements.levelSelect || !elements.caseList) {
+        console.error('Required DOM elements not found');
+        return;
+    }
+    
     renderCaseList();
     setupEventListeners();
     checkUpdateNotes();
@@ -88,7 +104,8 @@ function closeUpdateNotes() {
 }
 
 // 切换页面
-function switchPage(pageName) {
+// 切换页面
+window.switchPage = function(pageName) {
     // 更新按钮状态
     document.querySelectorAll('.sidebar-toggle-btn').forEach(btn => {
         btn.classList.remove('active');
