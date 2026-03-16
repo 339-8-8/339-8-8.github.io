@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CS:GO 反向汰换模拟</title>
-    <link rel="stylesheet" href="css/index.css?v=26.3.14.9">
+    <link rel="stylesheet" href="css/index.css?v=26.3.16.2">
     <script>
         var _hmt = _hmt || [];
         (function() {
@@ -98,9 +98,8 @@
             <!-- 右侧容器：标题和模拟结果 -->
             <div class="right-container">
                 <div class="section tool-info">
-                    <div class="section-title">CS:GO 反向汰换模拟</div>
                     <div class="tool-description">
-                        <p>数据仅供参考！功能不能保证！如果需要读取库存和一键汰换功能请在电脑上打开网页。有什么问题和建议可以在小黑盒搜索"CS炼金反向汰换模拟"，在帖子下面评论反馈。</p>
+                        <p>数据仅供参考！功能不能保证！有什么问题和建议可以在小黑盒搜索"CS炼金反向汰换模拟"，在帖子下面评论反馈。</p>
                     </div>
                 </div>
                 
@@ -176,20 +175,19 @@
                         <div class="right-container">
                             <!-- 默认提示 -->
                             <div class="quick-default-hint" id="quickDefaultHint">
-                                <div class="quick-default-hint-content">
+                                <div class="quick-default-hint-content" id="quickDefaultHintContent">
                                     <div class="quick-default-hint-icon">📋</div>
                                     <div class="quick-default-hint-text">请先处理数据</div>
                                 </div>
-                            </div>
-                            
-                            <!-- 处理进度条 -->
-                            <div class="process-status-container" id="processStatusContainer" style="display: none;">
-                                <div class="status-info">
-                                    <span class="status-text" id="statusText">等待处理...</span>
-                                    <span class="status-count" id="statusCount"></span>
-                                </div>
-                                <div class="progress-bar" id="progressBar">
-                                    <div class="progress-fill" id="progressFill"></div>
+                                <!-- 处理进度条 -->
+                                <div class="process-status-container" id="processStatusContainer" style="display: none;">
+                                    <div class="status-info">
+                                        <span class="status-text" id="statusText">等待处理...</span>
+                                        <span class="status-count" id="statusCount"></span>
+                                    </div>
+                                    <div class="progress-bar" id="progressBar">
+                                        <div class="progress-fill" id="progressFill"></div>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -216,7 +214,7 @@
                                             <input type="text" class="tradeup-input" id="targetMinWearValue" placeholder="输入目标产物最低磨损值" value="0.000000">
                                         </div>
                                         <div class="tradeup-input-buttons-col">
-                                            <button class="tradeup-btn-small" id="tradeupFetchBtn" title="左侧获取产物数据">左侧获取产物数据</button>
+                                            <button class="tradeup-btn-small" id="tradeupFetchBtn" title="从反向汰换获取数据">从反向汰换获取数据</button>
                                             <button class="tradeup-btn-small" id="tradeupSaveBtn" title="保存记录">保存记录</button>
                                         </div>
                                     </div>
@@ -269,110 +267,47 @@
         <div class="page-panel" id="noticePage">
             <div class="container">
                 <div class="main-content">
-                    <div class="notice-section">
-                        <div class="notice-title">⚠️ 注意事项</div>
-                    
-                    <div class="notice-card">
-                        <div class="notice-card-title">📖 使用说明</div>
-                        <div class="notice-card-content">
-                            <p style="font-weight: 600; margin-bottom: 8px;">1. 获取皮肤数据</p>
-                            <ul>
-                                <li>打开BUFF网页，点击我的库存，显示全部切换为显示可出售</li>
-                                <li>在网址上找到page_size=50参数，把50改为可出售的全部皮肤数量</li>
-                                <li>点击刷新网页，现在一页就能显示可出售的全部皮肤数据了</li>
-                                <li>ctrl+a复制网页数据即可</li>
-                            </ul>
-                            <p style="font-weight: 600; margin: 16px 0 8px 0;">2. 如何使用一键汰换？</p>
-                            <ul>
-                                <li>方式一：在左侧选择皮肤和输入磨损值，点击"从左侧获取目标产物数据"</li>
-                                <li>方式二：直接在输入框中填写目标产物名字和磨损值（尽量不要极限卡磨损！）</li>
-                                <li>点击"执行汰换计算"查找最佳的10个下级皮肤组合</li>
-                                <li>确认无误后点击"确认并清空"在皮肤库存中删除这10个皮肤</li>
-                            </ul>
-                            <p style="font-weight: 600; margin: 16px 0 8px 0;">3. 自动脚本</p>
-                            <ul>
-                                <li>自动脚本内容需配合脚本程序使用</li>
-                                <li>普通汰换自动脚本内容会停在合成前的勾选框上</li>
-                                <li>快速汰换自动脚本内容会直接合成直至结束</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="notice-card">
-                        <div class="notice-card-title">📌 数据准确性</div>
-                        <div class="notice-card-content">
-                            <ul>
-                                <li>本工具的所有数据仅供参考，不保证完全准确</li>
-                                <li>皮肤磨损值计算基于游戏内公式，但实际结果可能存在微小偏差</li>
-                                <li>武器箱和皮肤数据来源于公开资料，可能存在更新延迟</li>
-                                <li>建议在实际操作前，先在游戏内验证计算结果</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="notice-card">
-                        <div class="notice-card-title">🔧 功能限制</div>
-                        <div class="notice-card-content">
-                            <ul>
-                                <li>一键汰换功能需要电脑端浏览器使用</li>
-                                <li>自动脚本功能为测试功能，不保证在所有环境下正常工作</li>
-                                <li>皮肤库存数据需要手动从BUFF网页复制</li>
-                                <li>部分武器箱可能因数据缺失而无法正确计算</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="notice-card">
-                        <div class="notice-card-title">⚠️ 使用风险</div>
-                        <div class="notice-card-content">
-                            <ul>
-                                <li>使用本工具进行汰换操作的风险由用户自行承担</li>
-                                <li>请勿尝试极限卡磨损，可能导致汰换失败</li>
-                                <li>确认汰换前请仔细核对皮肤信息，避免误操作</li>
-                                <li>建议先使用"取消汰换"功能备份数据再进行操作</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="notice-card">
-                        <div class="notice-card-title">💡 使用建议</div>
-                        <div class="notice-card-content">
-                            <ul>
-                                <li>目标磨损值建议留有一定余量，不要极限卡磨损</li>
-                                <li>选择参与汰换的武器箱时，优先选择下级皮肤种类少的</li>
-                                <li>使用快速汰换时，注意观察每次汰换的结果磨损值</li>
-                                <li>定期备份皮肤库存数据，防止意外丢失</li>
-                                <li>遇到问题可在小黑盒搜索"CS炼金反向汰换模拟"反馈</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="notice-card">
-                        <div class="notice-card-title">📊 磨损值说明</div>
-                        <div class="notice-card-content">
-                            <ul>
-                                <li><strong>崭新出厂：</strong>0.00 - 0.07</li>
-                                <li><strong>略有磨损：</strong>0.07 - 0.15</li>
-                                <li><strong>久经沙场：</strong>0.15 - 0.38</li>
-                                <li><strong>破损不堪：</strong>0.38 - 0.45</li>
-                                <li><strong>战痕累累：</strong>0.45 - 1.00</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="notice-card">
-                        <div class="notice-card-title">🔄 汰换公式</div>
-                        <div class="notice-card-content">
-                            <p>汰换后的皮肤磨损值计算公式：</p>
-                            <div class="notice-formula">
-                                结果磨损 = 目标皮肤最低磨损 + (平均转换磨损 × (目标皮肤最高磨损 - 目标皮肤最低磨损))
+                    <div class="notice-title">⚠️ 注意事项</div>
+                    <div class="notice-grid">
+                        <div class="notice-card">
+                            <div class="notice-card-title">📖 使用说明</div>
+                            <div class="notice-card-content">
+                                <p style="font-weight: 600; margin-bottom: 8px;">1. 获取皮肤数据</p>
+                                <ul>
+                                    <li>打开BUFF网页，点击我的库存，显示全部切换为显示可出售</li>
+                                    <li>在网址上找到page_size=50参数，把50改为可出售的全部皮肤数量</li>
+                                    <li>点击刷新网页，现在一页就能显示可出售的全部皮肤数据了</li>
+                                    <li>ctrl+a复制网页数据即可</li>
+                                </ul>
+                                <p style="font-weight: 600; margin: 16px 0 8px 0;">2. 如何使用一键汰换？</p>
+                                <ul>
+                                    <li>方式一：在左侧选择皮肤和输入磨损值，点击"从左侧获取目标产物数据"</li>
+                                    <li>方式二：直接在输入框中填写目标产物名字和磨损值（尽量不要极限卡磨损！）</li>
+                                    <li>点击"执行汰换计算"查找最佳的10个下级皮肤组合</li>
+                                    <li>确认无误后点击"确认并清空"在皮肤库存中删除这10个皮肤</li>
+                                </ul>
+                                <p style="font-weight: 600; margin: 16px 0 8px 0;">3. 自动脚本</p>
+                                <ul>
+                                    <li>自动脚本内容需配合脚本程序使用</li>
+                                    <li>普通汰换自动脚本内容会停在合成前的勾选框上</li>
+                                    <li>快速汰换自动脚本内容会直接合成直至结束</li>
+                                </ul>
                             </div>
-                            <p style="margin-top: 12px; color: #718096; font-size: 13px;">
-                                其中，转换磨损 = (输入皮肤磨损 - 输入皮肤最低磨损) / (输入皮肤最高磨损 - 输入皮肤最低磨损)
-                            </p>
                         </div>
+                        
+                        <div class="notice-card">
+                            <div class="notice-card-title">💡 使用建议</div>
+                            <div class="notice-card-content">
+                                <ul>
+                                    <li>本工具的所有数据仅供参考，不保证完全准确</li>
+                                    <li>建议在实际操作前，先在游戏内验证计算结果</li>
+                                    <li>目标磨损值建议留有一定余量，不要极限卡磨损</li>
+                                    <li>遇到问题可在小黑盒搜索"CS炼金反向汰换模拟"反馈</li>
+                                </ul>
+                            </div>
+                        </div>
+                          
                     </div>
-                </div>
                 </div>
             </div>
         </div>
@@ -385,9 +320,8 @@
     <script src="js/processed_skins_data.js"></script>
     <script src="js/index.js"></script>
     <script src="js/user_inventory_enhanced.js"></script>
-    <!-- <script>
+    <script>
         (new Image()).src = "https://visitor-badge.laobi.icu/badge?page_id=339-8-8.github.io";
-    </script> -->
-    <!-- <script defer src="https://umami-eight-taupe.vercel.app/script.js" data-website-id="84d7554f-f5cd-4033-b8b1-65cb6e2fca26"></script> -->
+    </script>
 </body>
 </html>

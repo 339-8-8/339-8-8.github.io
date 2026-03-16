@@ -11,14 +11,14 @@ const state = {
 };
 
 // 当前版本号（每次更新时修改此值）
-const APP_VERSION = '26.3.14.2';
+const APP_VERSION = '26.3.16.2';
 
 // 更新公告内容
 const UPDATE_NOTES = `
 <h3>更新公告 v${APP_VERSION}</h3>
 <ul>
-    <li>优化选择多武器并控制数量时汰换算法，现在结果磨损和目标磨损更接近了</li>
-    <li>修复快速汰换中原始位置计算问题</li>
+    <li>粗略修改了页面布局</li>
+    <li>反向汰换可以查看磨损区间相似的皮肤数据</li>
 </ul>
 <p class="update-tip">点击空白处或关闭按钮关闭此窗口</p>
 `;
@@ -414,13 +414,6 @@ function findSimilarSkins() {
     
     const similarSkins = [];
     
-    // 首先添加当前选中的皮肤
-    similarSkins.push({
-        name: state.selectedSkin.name,
-        crate: state.selectedCase.name,
-        isCurrent: true
-    });
-    
     // 遍历所有武器箱/收藏品
     for (const caseItem of state.cases) {
         // 找到同级别
@@ -479,20 +472,7 @@ function getWearCondition(wear) {
 function displayResults(results, similarSkins) {
     let html = '';
     
-    // 显示相似皮肤（放在最上方）
-    if (similarSkins && similarSkins.length > 0) {
-        html += '<div class="result-section-title">🔗 相似皮肤（点击查看下级皮肤）</div>';
-        html += '<div class="similar-skins-list">';
-        html += similarSkins.map((skin, index) => `
-            <div class="similar-skin-card ${skin.isCurrent ? 'selected current' : ''}" onclick="selectSimilarSkin(${index})" data-index="${index}">
-                <div class="similar-skin-name">${skin.name}${skin.isCurrent ? ' (当前)' : ''}</div>
-                <div class="similar-skin-crate">${skin.crate}</div>
-            </div>
-        `).join('');
-        html += '</div>';
-    }
-    
-    // 显示当前选中皮肤信息
+    // 1. 显示当前选中皮肤信息
     html += '<div class="result-section-title">📌 当前皮肤</div>';
     html += '<div class="current-skin-info">';
     html += `<span class="current-skin-name">${state.selectedSkin.name}</span>`;
@@ -500,7 +480,7 @@ function displayResults(results, similarSkins) {
     html += `<span class="current-skin-crate">${state.selectedCase.name}</span>`;
     html += '</div>';
     
-    // 显示下级皮肤计算结果
+    // 2. 显示下级皮肤计算结果
     html += '<div class="result-section-title">📊 下级皮肤磨损值</div>';
     html += '<div class="result-list">';
     html += results.map(result => `
@@ -511,11 +491,83 @@ function displayResults(results, similarSkins) {
     `).join('');
     html += '</div>';
     
+    // 3. 显示相似皮肤及其下级皮肤磨损值
+    if (similarSkins && similarSkins.length > 0) {
+        html += '<div class="result-section-title">🔗 相似皮肤及下级皮肤磨损值</div>';
+        
+        similarSkins.forEach((skin, index) => {
+            // 找到相似皮肤对应的武器箱和皮肤数据
+            const targetCase = state.cases.find(c => c.name === skin.crate);
+            if (!targetCase) return;
+            
+            const targetLevel = targetCase.levels.find(l => l.name === state.selectedLevel.name);
+            if (!targetLevel) return;
+            
+            const targetSkin = targetLevel.skins.find(s => s.name === skin.name);
+            if (!targetSkin) return;
+            
+            // 计算该相似皮肤的下级皮肤磨损值
+            const currentOrder = levelOrder[state.selectedLevel.name];
+            const nextOrder = currentOrder - 1;
+            const nextLevel = targetCase.levels.find(l => levelOrder[l.name] === nextOrder);
+            
+            if (nextLevel) {
+                const similarResults = nextLevel.skins.map(lowerSkin => {
+                    const lowerWear = calculateLowerWearForSkin(lowerSkin, targetSkin, state.wearValue);
+                    const condition = getWearCondition(lowerWear);
+                    
+                    return {
+                        name: lowerSkin.name,
+                        wear: lowerWear,
+                        wearFormatted: lowerWear.toFixed(5),
+                        conditionCode: condition.code,
+                        conditionText: condition.text,
+                        conditionColor: condition.color
+                    };
+                });
+                
+                similarResults.sort((a, b) => a.wear - b.wear);
+                
+                html += `<div class="similar-skin-section">`;
+                html += `<div class="similar-skin-header" onclick="toggleSimilarSkinDetail(${index})">`;
+                html += `<span class="similar-skin-toggle-icon" id="toggleIcon${index}">▶</span>`;
+                html += `<span class="similar-skin-name">${skin.name}</span>`;
+                html += `<span class="similar-skin-crate">${skin.crate}</span>`;
+                html += `</div>`;
+                html += `<div class="similar-skin-results" id="similarResults${index}" style="display: none;">`;
+                similarResults.forEach(result => {
+                    html += `<div class="result-card" style="border-left-color: ${result.conditionColor}">`;
+                    html += `<div class="result-skin-name">${result.name}</div>`;
+                    html += `<div class="result-wear">${result.wearFormatted}</div>`;
+                    html += `</div>`;
+                });
+                html += `</div>`;
+                html += `</div>`;
+            }
+        });
+    }
+    
     elements.resultsContainer.innerHTML = html;
     
     // 保存相似皮肤数据供点击使用
     state.similarSkins = similarSkins;
     state.currentResults = results;
+}
+
+// 切换相似皮肤详情显示
+function toggleSimilarSkinDetail(index) {
+    const resultsDiv = document.getElementById(`similarResults${index}`);
+    const iconSpan = document.getElementById(`toggleIcon${index}`);
+    
+    if (resultsDiv && iconSpan) {
+        if (resultsDiv.style.display === 'none') {
+            resultsDiv.style.display = 'block';
+            iconSpan.textContent = '▼';
+        } else {
+            resultsDiv.style.display = 'none';
+            iconSpan.textContent = '▶';
+        }
+    }
 }
 
 // 选择相似皮肤

@@ -121,15 +121,20 @@ const UserInventoryEnhanced = {
             return;
         }
         
-        // 显示进度条
+        // 设置快速汰换模式标志
+        this.isQuickTradeupMode = true;
+        
+        // 显示进度条在tradeup-result容器中
         resultDiv.className = 'tradeup-result';
         resultDiv.innerHTML = `
-            <div class="quick-tradeup-progress">
-                <div class="progress-text">正在快速汰换中...</div>
-                <div class="progress-bar">
-                    <div class="progress-indicator"></div>
+            <div class="quick-tradeup-progress-container">
+                <div class="quick-tradeup-progress">
+                    <div class="progress-text">正在快速汰换中...</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="quickProgressFill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-subtext" id="quickProgressSubtext">准备开始计算</div>
                 </div>
-                <div class="progress-subtext">准备开始计算</div>
             </div>
         `;
         
@@ -158,10 +163,11 @@ const UserInventoryEnhanced = {
         
         // 更新进度条显示
         function updateProgress(current, total, status) {
-            const progressSubtext = resultDiv.querySelector('.progress-subtext');
-            if (progressSubtext) {
-                progressSubtext.textContent = `已完成 ${current} 次汰换，${status}`;
-            }
+            const progressFill = document.getElementById('quickProgressFill');
+            const progressSubtext = document.getElementById('quickProgressSubtext');
+            
+            if (progressFill) progressFill.style.width = `${(current / total) * 100}%`;
+            if (progressSubtext) progressSubtext.textContent = `已完成 ${current} 次汰换，${status}`;
         }
         
         function executeNext() {
@@ -204,63 +210,70 @@ const UserInventoryEnhanced = {
             // 更新进度显示
             updateProgress(self.quickTradeupResults.length, maxIterations, '计算中...');
             
-            try {
-            // 执行计算（不显示结果）
-            self.executeTradeupInternalSilent();
-            
-            // 检查计算结果（立即执行，不延迟）
-            const hasResult = self.currentTradeupResult !== null;
-            
-            if (hasResult) {
-                // 保存当前库存数据的快照（用于准确计算原始位置）
-                const currentInventorySnapshot = {
-                    originalSkinsData: JSON.parse(JSON.stringify(window.originalSkinsData)),
-                    processedData: JSON.parse(JSON.stringify(self.processedData))
-                };
+            // 使用setTimeout让进度条有机会更新
+            setTimeout(function() {
+                try {
+                // 执行计算（不显示结果）
+                self.executeTradeupInternalSilent();
                 
-                // 保存当前结果到列表（包含库存快照）
-                self.quickTradeupResults.push({
-                    skins: self.currentTradeupResult.skins,
-                    targetSkin: self.currentTradeupResult.targetSkin,
-                    targetWear: self.currentTradeupResult.targetWear,
-                    resultingWear: self.currentTradeupResult.resultingWear,
-                    inventorySnapshot: currentInventorySnapshot
-                });
+                // 检查计算结果（立即执行，不延迟）
+                const hasResult = self.currentTradeupResult !== null;
                 
-                // 执行确认并清空（不改变按钮状态）
-                self.doConfirmAndClear(true);
-                
-                // 继续下一次
-                executeNext();
-            } else {
-                // 没有结果（报错或无解），停止快速汰换
-                if (self.quickTradeupResults.length > 0) {
-                    updateProgress(self.quickTradeupResults.length, maxIterations, '计算完成');
-                    self.displayQuickTradeupResults();
+                if (hasResult) {
+                    // 保存当前库存数据的快照（用于准确计算原始位置）
+                    const currentInventorySnapshot = {
+                        originalSkinsData: JSON.parse(JSON.stringify(window.originalSkinsData)),
+                        processedData: JSON.parse(JSON.stringify(self.processedData))
+                    };
+                    
+                    // 保存当前结果到列表（包含库存快照）
+                    self.quickTradeupResults.push({
+                        skins: self.currentTradeupResult.skins,
+                        targetSkin: self.currentTradeupResult.targetSkin,
+                        targetWear: self.currentTradeupResult.targetWear,
+                        resultingWear: self.currentTradeupResult.resultingWear,
+                        inventorySnapshot: currentInventorySnapshot
+                    });
+                    
+                    // 执行确认并清空（不改变按钮状态）
+                    self.doConfirmAndClear(true);
+                    
+                    // 继续下一次
+                    executeNext();
                 } else {
-                    resultDiv.className = 'tradeup-result error';
-                    resultDiv.innerHTML = '❌ 未找到任何符合条件的组合';
-                    // 快速汰换失败，清空备份数据，回退按钮保持禁用
-                    self.backupData = null;
-                    const rollbackBtn = document.getElementById('tradeupRollbackBtn');
-                    if (rollbackBtn) rollbackBtn.disabled = true;
+                    // 没有结果（报错或无解），停止快速汰换
+                    if (self.quickTradeupResults.length > 0) {
+                        updateProgress(self.quickTradeupResults.length, maxIterations, '计算完成');
+                        setTimeout(function() {
+                            self.displayQuickTradeupResults();
+                        }, 100);
+                    } else {
+                        resultDiv.className = 'tradeup-result error';
+                        resultDiv.innerHTML = '❌ 未找到任何符合条件的组合';
+                        // 快速汰换失败，清空备份数据，回退按钮保持禁用
+                        self.backupData = null;
+                        const rollbackBtn = document.getElementById('tradeupRollbackBtn');
+                        if (rollbackBtn) rollbackBtn.disabled = true;
+                    }
                 }
-            }
-            } catch (error) {
-                console.error('快速汰换计算错误:', error);
-                // 发生错误，停止快速汰换
-                if (self.quickTradeupResults.length > 0) {
-                    updateProgress(self.quickTradeupResults.length, maxIterations, '计算错误');
-                    self.displayQuickTradeupResults();
-                } else {
-                    resultDiv.className = 'tradeup-result error';
-                    resultDiv.innerHTML = '❌ 快速汰换过程中发生错误，请检查控制台';
-                    // 快速汰换失败，清空备份数据，回退按钮保持禁用
-                    self.backupData = null;
-                    const rollbackBtn = document.getElementById('tradeupRollbackBtn');
-                    if (rollbackBtn) rollbackBtn.disabled = true;
+                } catch (error) {
+                    console.error('快速汰换计算错误:', error);
+                    // 发生错误，停止快速汰换
+                    if (self.quickTradeupResults.length > 0) {
+                        updateProgress(self.quickTradeupResults.length, maxIterations, '计算错误');
+                        setTimeout(function() {
+                            self.displayQuickTradeupResults();
+                        }, 100);
+                    } else {
+                        resultDiv.className = 'tradeup-result error';
+                        resultDiv.innerHTML = '❌ 快速汰换过程中发生错误，请检查控制台';
+                        // 快速汰换失败，清空备份数据，回退按钮保持禁用
+                        self.backupData = null;
+                        const rollbackBtn = document.getElementById('tradeupRollbackBtn');
+                        if (rollbackBtn) rollbackBtn.disabled = true;
+                    }
                 }
-            }
+            }, 50);
         }
         
         // 开始执行
@@ -392,6 +405,9 @@ const UserInventoryEnhanced = {
             return;
         }
         
+        // 重置快速汰换模式标志
+        this.isQuickTradeupMode = false;
+        
         // 显示第一页的结果
         this.displayResultPage(0);
     },
@@ -479,9 +495,6 @@ const UserInventoryEnhanced = {
                 <span class="pagination-info">${this.currentResultIndex + 1} / ${this.quickTradeupResults.length}</span>
                 <button class="pagination-btn" onclick="UserInventoryEnhanced.nextResultPage()" ${this.currentResultIndex >= this.quickTradeupResults.length - 1 ? 'disabled' : ''}>下一页 ▶</button>
             </div>
-            <div class="quick-tradeup-summary">
-                共完成 ${this.quickTradeupResults.length} 次汰换
-            </div>
         `;
         
         resultDiv.className = 'tradeup-result success';
@@ -497,12 +510,6 @@ const UserInventoryEnhanced = {
             ${skinListHtml}
             ${paginationHtml}
         `;
-        
-        // 显示结果区域
-        const quickResultsSection = document.getElementById('quickResultsSection');
-        if (quickResultsSection) {
-            quickResultsSection.style.display = 'block';
-        }
         
         resultDiv.classList.add('show');
         
@@ -768,9 +775,12 @@ const UserInventoryEnhanced = {
             }
         }
         
-        const resultDiv = document.getElementById('tradeupResult');
-        resultDiv.className = 'tradeup-result';
-        resultDiv.innerHTML = '';
+        // 只有在不是快速汰换模式下才清空结果容器
+        if (!this.isQuickTradeupMode) {
+            const resultDiv = document.getElementById('tradeupResult');
+            resultDiv.className = 'tradeup-result';
+            resultDiv.innerHTML = '';
+        }
         
         if (!skipButtonState) {
             const confirmBtn = document.getElementById('tradeupConfirmBtn');
@@ -1150,6 +1160,7 @@ const UserInventoryEnhanced = {
         const progressFill = document.getElementById('progressFill');
         const processBtn = document.getElementById('processBtn');
         const processStatusContainer = document.getElementById('processStatusContainer');
+        const quickDefaultHintContent = document.getElementById('quickDefaultHintContent');
         
         const pastedText = pasteTextarea.value.trim();
         
@@ -1158,8 +1169,11 @@ const UserInventoryEnhanced = {
             return;
         }
         
-        // 显示进度条
+        // 显示进度条，隐藏默认提示内容
         processStatusContainer.style.display = 'block';
+        if (quickDefaultHintContent) {
+            quickDefaultHintContent.style.display = 'none';
+        }
         
         // 更新状态
         statusText.textContent = '正在处理皮肤数据...';
@@ -1185,46 +1199,48 @@ const UserInventoryEnhanced = {
                 // 隐藏进度条
                 setTimeout(() => {
                     processStatusContainer.style.display = 'none';
+                    
+                    // 进度条完全消失后再显示汰换内容
+                    setTimeout(() => {
+                        // 显示皮肤库存（完整版）
+                        const importResults = document.getElementById('importResults');
+                        this.displayResults(results.matched, importResults, 'matched');
+                        
+                        // 初始化武器箱/收藏品选择功能并渲染列表
+                        this.initCrateSelection();
+                        this.renderCrateList();
+                        
+                        // 隐藏默认提示（带过渡效果）
+                        const quickDefaultHint = document.getElementById('quickDefaultHint');
+                        if (quickDefaultHint) {
+                            quickDefaultHint.classList.add('fade-out');
+                            setTimeout(() => {
+                                quickDefaultHint.style.display = 'none';
+                            }, 300);
+                        }
+                        
+                        // 显示一键汰换区域
+                        const tradeupSection = document.getElementById('tradeupSection');
+                        if (tradeupSection) {
+                            tradeupSection.style.display = 'block';
+                        }
+                        
+                        // 显示确认和复制按钮（禁用状态）
+                        const confirmBtn = document.getElementById('tradeupConfirmBtn');
+                        const copyScriptBtn = document.getElementById('tradeupCopyScriptBtn');
+                        if (confirmBtn && copyScriptBtn) {
+                            confirmBtn.style.display = 'block';
+                            copyScriptBtn.disabled = true;
+                        }
+                        if (copyScriptBtn) {
+                            copyScriptBtn.style.display = 'block';
+                            copyScriptBtn.disabled = true;
+                        }
+                        
+                        // 弹出提示框显示处理结果
+                        this.showProcessResultPopup(results);
+                    }, 0);
                 }, 500);
-                
-                // 生成并保存文件
-                const fileContent = this.generateUserInventoryFile(results);
-                this.saveToFile(fileContent);
-                
-                // 显示皮肤库存（完整版）
-                const importResults = document.getElementById('importResults');
-                this.displayResults(results.matched, importResults, 'matched');
-                
-                // 初始化武器箱/收藏品选择功能并渲染列表
-                this.initCrateSelection();
-                this.renderCrateList();
-                
-                // 隐藏默认提示
-                const quickDefaultHint = document.getElementById('quickDefaultHint');
-                if (quickDefaultHint) {
-                    quickDefaultHint.style.display = 'none';
-                }
-                
-                // 显示一键汰换区域
-                const tradeupSection = document.getElementById('tradeupSection');
-                if (tradeupSection) {
-                    tradeupSection.style.display = 'block';
-                }
-                
-                // 显示确认和复制按钮（禁用状态）
-                const confirmBtn = document.getElementById('tradeupConfirmBtn');
-                const copyScriptBtn = document.getElementById('tradeupCopyScriptBtn');
-                if (confirmBtn && copyScriptBtn) {
-                    confirmBtn.style.display = 'block';
-                    copyScriptBtn.disabled = true;
-                }
-                if (copyScriptBtn) {
-                    copyScriptBtn.style.display = 'block';
-                    copyScriptBtn.disabled = true;
-                }
-                
-                // 弹出提示框显示处理结果
-                this.showProcessResultPopup(results);
                 
             } catch (error) {
                 console.error('处理皮肤数据时出错:', error);
@@ -1780,12 +1796,6 @@ const UserInventoryEnhanced = {
             </div>
             ${skinListHtml}
         `;
-        
-        // 显示结果区域
-        const quickResultsSection = document.getElementById('quickResultsSection');
-        if (quickResultsSection) {
-            quickResultsSection.style.display = 'block';
-        }
         
         // 添加动画效果
         resultDiv.classList.add('show');

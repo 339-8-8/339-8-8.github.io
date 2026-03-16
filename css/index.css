@@ -80,25 +80,6 @@ html {
     position: relative;
 }
 
-/* 移动端样式 */
-@media (max-width: 767px) {
-    .main-content {
-        flex-direction: column !important;
-    }
-    
-    .left-container {
-        width: 100% !important;
-        max-width: 100% !important;
-        min-height: auto !important;
-    }
-    
-    .right-container {
-        width: 100% !important;
-        max-width: 100% !important;
-        min-height: auto !important;
-    }
-}
-
 .section {
     background: #ffffff;
     border-radius: 12px;
@@ -130,7 +111,7 @@ html {
     font-size: 1.1rem;
     font-weight: 700;
     color: #2d3748;
-    margin: 0 0 16px 0;
+    margin: 0 0 12px 0;
     padding: 12px 16px;
     background: #f8fafc;
     border-radius: 8px;
@@ -546,6 +527,74 @@ html {
 .results-section {
     background: white;
     border-radius: 8px;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#resultsContainer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 350px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 0;
+    margin-right: 0;
+    /* 确保滚动条不占用空间 */
+    scrollbar-gutter: stable;
+    scroll-padding-right: 0;
+}
+
+/* 全局悬浮滚动条样式 */
+#resultsContainer::-webkit-scrollbar {
+    width: 8px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#resultsContainer:hover::-webkit-scrollbar {
+    opacity: 0.5;
+}
+
+#resultsContainer::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+    margin: 4px 0;
+}
+
+#resultsContainer::-webkit-scrollbar-thumb {
+    background: rgba(102, 126, 234, 0.3);
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+#resultsContainer::-webkit-scrollbar-thumb:hover {
+    background: rgba(102, 126, 234, 0.6);
+}
+
+#resultsContainer::-webkit-scrollbar-thumb:active {
+    background: rgba(102, 126, 234, 0.8);
+}
+
+#resultsContainer {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(102, 126, 234, 0.3) transparent;
+}
+
+#resultsContainer:hover {
+    scrollbar-color: rgba(102, 126, 234, 0.6) transparent;
+}
+
+.no-data {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #718096;
+    font-size: 14px;
+    min-height: 300px;
 }
 
 .result-list {
@@ -707,52 +756,108 @@ html {
     border: 1px solid #81e6d9;
 }
 
-/* 手机端优化 */
+/* 响应式设计 - 桌面端优化 */
+/* 移动端样式 - 允许左右上下滚动浏览 */
 @media (max-width: 767px) {
-    .result-card {
-        padding: 10px 12px;
-        gap: 8px;
-        flex-wrap: nowrap;
-        flex: 0 0 calc(50% - 5px);
-        min-width: 140px;
+    body {
+        overflow-x: auto;
+        overflow-y: auto;
+        min-width: 1000px;
+        min-height: 100vh;
     }
     
-    .result-skin-name {
-        font-size: 12px;
-        line-height: 1.3;
-        min-width: 0;
-        margin-bottom: 0;
-        order: 1;
+    .page-wrapper {
+        min-width: 1000px;
+        width: auto;
+        overflow-x: auto;
+        overflow-y: auto;
     }
     
-    .result-wear {
-        font-size: 11px;
-        min-width: 75px;
-        order: 2;
-        flex: none;
-        text-align: center;
+    .container {
+        min-width: 1000px;
+        width: auto;
+        overflow-x: visible;
+        overflow-y: visible;
     }
     
     .main-content {
-        padding: 12px;
-        gap: 12px;
+        min-width: 1000px;
+        width: auto;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        overflow-x: visible;
+        overflow-y: visible;
     }
     
-    .section {
-        padding: 12px;
+    .left-container {
+        min-width: 300px;
+        width: auto;
+        flex-shrink: 0;
     }
     
-    .skin-list {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
+    .right-container {
+        min-width: 650px;
+        width: auto;
+        flex-shrink: 0;
     }
     
-    .case-list {
-        max-height: calc(48px * 6 + 10px * 5);
+    /* 一键汰换页面移动端样式 */
+    #quickPage .main-content {
+        min-width: 1200px;
+    }
+    
+    #quickPage .left-container {
+        min-width: 350px;
+    }
+    
+    #quickPage .right-container {
+        min-width: 800px;
+    }
+    
+    /* 反向汰换页面移动端样式 */
+    #reversePage .main-content {
+        min-width: 1000px;
+    }
+    
+    #reversePage .left-container {
+        min-width: 300px;
+    }
+    
+    #reversePage .right-container {
+        min-width: 650px;
+    }
+    
+    /* 注意事项页面移动端样式 */
+    #noticePage .main-content {
+        min-width: 800px;
+        justify-content: center;
+    }
+    
+    #noticePage .notice-container {
+        min-width: 700px;
+    }
+    
+    /* 确保滚动条可见 */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.5);
     }
 }
 
-/* 响应式设计 - 桌面端优化 */
 @media (min-width: 768px) {
     .container {
         max-width: 100%;
@@ -856,11 +961,12 @@ html {
         flex: 0 0 calc(70% - 20px);
         min-width: 450px;
         max-width: calc(70% - 20px);
+        min-height: 400px;
         display: flex;
         flex-direction: column;
         transition: all 0.3s ease;
         gap: 20px;
-        overflow-y: auto;
+        overflow-y: visible;
         overflow-x: hidden;
     }
     
@@ -880,7 +986,7 @@ html {
     .section-title {
         font-size: 1.1rem;
         padding: 14px 18px;
-        margin: 0 0 18px 0;
+        margin: 0 0 12px 0;
     }
     
     .skin-list {
@@ -895,38 +1001,29 @@ html {
     /* 注意事项页面在桌面端的特殊样式 */
     #noticePage .main-content {
         flex-direction: column !important;
-        display: block !important;
+        display: flex !important;
         padding: 24px !important;
         width: 100% !important;
         flex: none !important;
         min-height: auto !important;
         overflow-y: auto !important;
+        box-sizing: border-box !important;
+        align-items: center !important;
     }
     
     #noticePage .container {
         overflow-y: auto !important;
-    }
-}
-
-/* 大屏手机优化 */
-@media (min-width: 414px) and (max-width: 767px) {
-    .skin-list {
-        grid-template-columns: repeat(3, 1fr);
+        display: flex !important;
+        justify-content: center !important;
+        width: 100% !important;
     }
     
-    .result-card {
-        flex-wrap: nowrap;
-    }
-    
-    .result-skin-name {
-        min-width: 0;
-        margin-bottom: 0;
-        order: 1;
-    }
-    
-    .result-wear {
-        order: 2;
-        text-align: center;
+    #noticePage .notice-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 20px !important;
+        width: 100% !important;
+        max-width: 1200px !important;
     }
 }
 
@@ -943,13 +1040,9 @@ html {
     color: #718096;
 }
 
-/* 皮肤数据处理区域样式 - 美化版 */
+/* 皮肤数据处理区域样式 */
 .paste-section {
-    background: linear-gradient(135deg, #f8fafc 0%, #f7fafc 100%);
-    border-radius: 16px;
-    padding: 16px;
-    border: 2px solid #e2e8f0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 8px;
 }
 
 .paste-input-row {
@@ -1041,7 +1134,7 @@ html {
 
 .paste-textarea {
     width: 100%;
-    height: 80px;
+    height: 60px;
     padding: 14px;
     border: 2px solid #cbd5e0;
     border-radius: 12px;
@@ -1533,7 +1626,6 @@ html {
     padding: 20px;
     border: 2px solid #fc8181;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    margin-top: 20px;
 }
 
 .tradeup-title {
@@ -1933,7 +2025,49 @@ html {
     background: white;
     border: 2px solid #e2e8f0;
     min-height: 344px;
-    transition: all 0.3s ease;
+}
+
+.quick-tradeup-progress-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+    width: 100%;
+}
+
+.quick-tradeup-progress {
+    text-align: center;
+    padding: 40px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.quick-tradeup-progress .progress-text {
+    font-size: 16px;
+    color: #4a5568;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.quick-tradeup-progress .progress-bar {
+    height: 12px;
+    background: #e2e8f0;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.quick-tradeup-progress .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #48bb78, #38a169);
+    border-radius: 6px;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.quick-tradeup-progress .progress-subtext {
+    font-size: 14px;
+    color: #718096;
 }
 
 .tradeup-result.error {
@@ -2028,25 +2162,31 @@ html {
     border-radius: 12px;
     padding: 16px;
     margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
 }
 
 .tradeup-summary-title {
     font-weight: 700;
     color: #22543d;
     font-size: 16px;
-    margin-bottom: 12px;
+    margin-bottom: 0;
+    white-space: nowrap;
 }
 
 .tradeup-summary-details {
     display: flex;
-    flex-wrap: wrap;
-    gap: 12px 24px;
+    flex-wrap: nowrap;
+    gap: 24px;
+    align-items: center;
 }
 
 .tradeup-summary-details > div {
     display: flex;
     align-items: center;
     gap: 6px;
+    white-space: nowrap;
 }
 
 .summary-label {
@@ -3033,43 +3173,70 @@ html {
 }
 
 .sidebar-toggle-btn {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     border: none;
-    border-radius: 12px;
-    background: rgba(102, 126, 234, 0.1);
-    color: #667eea;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.8);
+    color: #4a5568;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: 4px;
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar-toggle-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
 }
 
 .sidebar-toggle-btn:hover {
-    background: rgba(102, 126, 234, 0.2);
-    transform: scale(1.05);
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.sidebar-toggle-btn:hover::before {
+    opacity: 0.1;
 }
 
 .sidebar-toggle-btn.active {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    transform: scale(1.08);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+    transform: scale(1.12);
+}
+
+.sidebar-toggle-btn.active::before {
+    opacity: 0;
 }
 
 .sidebar-toggle-icon {
-    font-size: 16px;
+    font-size: 18px;
     line-height: 1;
+    position: relative;
+    z-index: 1;
 }
 
 .sidebar-toggle-text {
-    font-size: 8px;
+    font-size: 9px;
     font-weight: 600;
     line-height: 1;
     white-space: nowrap;
+    position: relative;
+    z-index: 1;
 }
 
 .page-content {
@@ -3100,21 +3267,6 @@ html {
 .page-panel .main-content {
     flex: 1;
     overflow: hidden;
-}
-
-/* 移动端：隐藏侧边栏切换 */
-@media (max-width: 767px) {
-    .sidebar-toggle {
-        display: none !important;
-    }
-    
-    .page-wrapper {
-        flex-direction: column;
-    }
-    
-    .page-content {
-        width: 100%;
-    }
 }
 
 /* 一键汰换页面样式 */
@@ -3177,8 +3329,18 @@ html {
     justify-content: center;
     background: white;
     border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-    min-height: 100%;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    min-height: 400px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+#quickPage .quick-default-hint.fade-out {
+    opacity: 0;
+    transform: translateY(-10px);
 }
 
 #quickPage .quick-default-hint-content {
@@ -3199,41 +3361,54 @@ html {
 }
 
 #quickPage .process-status-container {
-    background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%);
-    border-radius: 10px;
-    padding: 12px 16px;
-    margin-bottom: 16px;
-    border: 1px solid #9ae6b4;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: white;
+    border-radius: 12px;
+    width: 80%;
+    max-width: 500px;
+    padding: 40px;
+    box-sizing: border-box;
 }
 
 #quickPage .process-status-container .status-info {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: 16px;
+    width: 100%;
 }
 
 #quickPage .process-status-container .status-text {
     font-weight: 600;
     color: #276749;
+    font-size: 16px;
 }
 
 #quickPage .process-status-container .status-count {
     color: #48bb78;
     font-weight: 500;
+    font-size: 14px;
 }
 
 #quickPage .process-status-container .progress-bar {
-    height: 8px;
-    background: #c6f6d5;
-    border-radius: 4px;
+    height: 12px;
+    background: #e2e8f0;
+    border-radius: 6px;
     overflow: hidden;
+    width: 100%;
 }
 
 #quickPage .process-status-container .progress-fill {
     height: 100%;
     background: linear-gradient(90deg, #48bb78, #38a169);
-    border-radius: 4px;
+    border-radius: 6px;
     transition: width 0.3s ease;
     width: 0%;
 }
@@ -3242,6 +3417,7 @@ html {
     flex: 0 0 calc(70% - 20px);
     min-width: 450px;
     max-width: calc(70% - 20px);
+    min-height: 400px;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
@@ -3251,52 +3427,63 @@ html {
     background: white;
     border-radius: 12px;
     padding: 16px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-    margin-top: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    min-height: 400px;
 }
 
 #quickPage .tradeup-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     background: white;
     border-radius: 12px;
     padding: 16px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    min-height: 400px;
 }
 
 /* 注意事项页面样式 */
 #noticePage .container {
     overflow-y: auto;
+    display: flex;
+    justify-content: center;
+    width: 100%;
 }
 
 #noticePage .main-content {
-    overflow-y: auto;
+    overflow-y: auto !important;
     padding: 24px;
-}
-
-.notice-content {
     display: flex;
-    justify-content: center;
-    padding: 24px;
-    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.notice-section {
-    max-width: 800px;
+.notice-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
     width: 100%;
+    max-width: 1200px;
 }
 
 .notice-title {
     font-size: 28px;
     font-weight: 700;
     color: #2d3748;
-    margin-bottom: 24px;
+    margin-bottom: 16px;
     text-align: center;
+    width: 100%;
+    max-width: 1200px;
 }
 
 .notice-card {
     background: transparent;
     border-radius: 12px;
     padding: 20px 24px;
-    margin-bottom: 16px;
     border-left: 4px solid #667eea;
 }
 
@@ -3337,5 +3524,54 @@ html {
     font-size: 13px;
     color: #667eea;
     margin-top: 8px;
+}
+
+/* 相似皮肤折叠样式 */
+.similar-skin-section {
+    margin-bottom: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.similar-skin-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #f7fafc;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.similar-skin-header:hover {
+    background: #edf2f7;
+}
+
+.similar-skin-toggle-icon {
+    font-size: 12px;
+    color: #718096;
+    width: 16px;
+    transition: transform 0.2s ease;
+}
+
+.similar-skin-name {
+    font-weight: 600;
+    color: #2d3748;
+    flex: 1;
+}
+
+.similar-skin-crate {
+    font-size: 12px;
+    color: #718096;
+    background: #edf2f7;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.similar-skin-results {
+    padding: 12px;
+    background: white;
+    border-top: 1px solid #e2e8f0;
 }
 
