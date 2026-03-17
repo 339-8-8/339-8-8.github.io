@@ -38,6 +38,7 @@ body {
 
 html {
     height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .container {
@@ -643,6 +644,28 @@ html {
     font-size: 13px;
 }
 
+.current-skins-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.current-skin-info.other {
+    background: rgba(102, 126, 234, 0.15);
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    color: #4a5568;
+}
+
+.current-skin-info.other .current-skin-wear {
+    background: rgba(102, 126, 234, 0.2);
+    color: #4a5568;
+}
+
+.current-skin-info.other .current-skin-crate {
+    background: rgba(102, 126, 234, 0.15);
+    color: #718096;
+}
+
 .current-skin-name {
     font-weight: 600;
     flex: 1;
@@ -661,6 +684,15 @@ html {
     background: rgba(255, 255, 255, 0.15);
     padding: 3px 8px;
     border-radius: 4px;
+}
+
+.result-section-subtitle {
+    font-size: 12px;
+    font-weight: 600;
+    color: #718096;
+    margin: 8px 0 6px 0;
+    padding-bottom: 3px;
+    border-bottom: 1px dashed #e2e8f0;
 }
 
 .similar-skins-list {
@@ -759,12 +791,20 @@ html {
 /* 响应式设计 - 桌面端优化 */
 /* 移动端样式 - 允许左右上下滚动浏览 */
 @media (max-width: 767px) {
+    html {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-width: 1000px;
+    }
+    
     body {
         overflow-x: auto;
         overflow-y: auto;
         min-width: 1000px;
+        height: auto;
         min-height: 100vh;
-        background: #f7fafc;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background-attachment: fixed;
+        background-size: cover;
     }
     
     .page-wrapper {
@@ -772,7 +812,9 @@ html {
         width: auto;
         overflow-x: auto;
         overflow-y: auto;
-        background: #f7fafc;
+        height: auto;
+        min-height: 100vh;
+        background: transparent;
     }
     
     .container {
@@ -780,7 +822,9 @@ html {
         width: auto;
         overflow-x: visible;
         overflow-y: visible;
-        background: #f7fafc;
+        height: auto;
+        min-height: 100vh;
+        background: rgba(255, 255, 255, 0.95);
     }
     
     .main-content {
@@ -790,65 +834,140 @@ html {
         flex-wrap: nowrap;
         overflow-x: visible;
         overflow-y: visible;
-        background: #f7fafc;
+        height: auto;
+        min-height: auto;
+        background: transparent;
     }
     
     .left-container {
         min-width: 300px;
         width: auto;
         flex-shrink: 0;
-        background: #f7fafc;
+        height: auto;
+        min-height: auto;
+        background: transparent;
     }
     
     .right-container {
         min-width: 650px;
         width: auto;
         flex-shrink: 0;
-        background: #f7fafc;
+        height: auto;
+        min-height: auto;
+        background: transparent;
     }
     
     /* 一键汰换页面移动端样式 */
     #quickPage .main-content {
         min-width: 1200px;
-        background: #f7fafc;
+        height: auto;
+        min-height: auto;
+        background: transparent;
     }
     
     #quickPage .left-container {
         min-width: 350px;
-        background: #f7fafc;
+        height: auto;
+        min-height: auto;
+        background: transparent;
     }
     
     #quickPage .right-container {
         min-width: 800px;
-        background: #f7fafc;
+        height: auto;
+        min-height: auto;
+        background: transparent;
     }
     
     /* 反向汰换页面移动端样式 */
     #reversePage .main-content {
         min-width: 1000px;
-        background: #f7fafc;
+        height: auto;
+        min-height: auto;
+        background: transparent;
     }
     
     #reversePage .left-container {
         min-width: 300px;
-        background: #f7fafc;
+        height: auto;
+        min-height: auto;
+        background: transparent;
     }
     
     #reversePage .right-container {
         min-width: 650px;
-        background: #f7fafc;
+        height: auto;
+        min-height: auto;
+        background: transparent;
     }
     
     /* 注意事项页面移动端样式 */
     #noticePage .main-content {
         min-width: 800px;
         justify-content: center;
-        background: #f7fafc;
+        height: auto;
+        min-height: auto;
+        background: transparent;
     }
     
     #noticePage .notice-container {
         min-width: 700px;
-        background: #f7fafc;
+        height: auto;
+        min-height: auto;
+        background: transparent;
+    }
+    
+    /* 移动端导航栏移到底部 */
+    .page-wrapper {
+        flex-direction: column;
+    }
+    
+    .sidebar-toggle {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        top: auto !important;
+        width: 100% !important;
+        height: 70px !important;
+        order: 999 !important;
+        z-index: 1000 !important;
+        box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.15) !important;
+    }
+    
+    .sidebar-toggle-inner {
+        flex-direction: row !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 16px !important;
+        width: 100% !important;
+        padding: 0 16px !important;
+    }
+    
+    .sidebar-toggle-btn {
+        width: auto !important;
+        min-width: 80px !important;
+        height: 50px !important;
+        padding: 8px 16px !important;
+        flex-direction: column !important;
+        gap: 4px !important;
+    }
+    
+    .sidebar-toggle-icon {
+        font-size: 20px !important;
+    }
+    
+    .sidebar-toggle-text {
+        font-size: 10px !important;
+    }
+    
+    .page-content {
+        padding-bottom: 80px !important;
+        flex: 1 !important;
+    }
+    
+    .container {
+        min-height: calc(100vh - 70px) !important;
     }
     
     /* 确保滚动条可见 */
@@ -869,6 +988,16 @@ html {
     
     ::-webkit-scrollbar-thumb:hover {
         background: rgba(0, 0, 0, 0.5);
+    }
+    
+    /* 确保结果区域可以滚动 */
+    .results-section {
+        overflow: visible;
+    }
+    
+    #resultsContainer {
+        overflow-y: auto;
+        overflow-x: hidden;
     }
 }
 

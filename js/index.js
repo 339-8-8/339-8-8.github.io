@@ -11,7 +11,7 @@ const state = {
 };
 
 // 当前版本号（每次更新时修改此值）
-const APP_VERSION = '26.3.16.2';
+const APP_VERSION = '26.3.17.5';
 
 // 更新公告内容
 const UPDATE_NOTES = `
@@ -489,12 +489,37 @@ function getWearCondition(wear) {
 function displayResults(results, similarSkins) {
     let html = '';
     
-    // 1. 显示当前选中皮肤信息
+    // 1. 显示当前选中皮肤及同级别其他皮肤信息
     html += '<div class="result-section-title">📌 当前皮肤</div>';
+    html += '<div class="current-skins-container">';
+    
+    // 当前选中皮肤
     html += '<div class="current-skin-info">';
     html += `<span class="current-skin-name">${state.selectedSkin.name}</span>`;
     html += `<span class="current-skin-wear">${state.wearValue.toFixed(5)}</span>`;
     html += `<span class="current-skin-crate">${state.selectedCase.name}</span>`;
+    html += '</div>';
+    
+    // 获取同武器箱同皮肤级别的其他皮肤
+    if (state.selectedLevel && state.selectedLevel.skins.length > 1) {
+        const otherSkinsInLevel = state.selectedLevel.skins.filter(s => s.name !== state.selectedSkin.name);
+        
+        if (otherSkinsInLevel.length > 0) {
+            otherSkinsInLevel.forEach(skin => {
+                // 其他同级皮肤磨损值 = (当前磨损值 - 当前最小磨损) / (当前最大磨损 - 当前最小磨损) * (其他皮肤最大磨损 - 其他皮肤最小磨损) + 其他皮肤最小磨损
+                const otherWear = (state.wearValue - state.selectedSkin.minWear) / 
+                                  (state.selectedSkin.maxWear - state.selectedSkin.minWear) * 
+                                  (skin.maxWear - skin.minWear) + skin.minWear;
+                
+                html += '<div class="current-skin-info other">';
+                html += `<span class="current-skin-name">${skin.name}</span>`;
+                html += `<span class="current-skin-wear">${otherWear.toFixed(5)}</span>`;
+                html += `<span class="current-skin-crate">${state.selectedCase.name}</span>`;
+                html += '</div>';
+            });
+        }
+    }
+    
     html += '</div>';
     
     // 2. 显示下级皮肤计算结果
