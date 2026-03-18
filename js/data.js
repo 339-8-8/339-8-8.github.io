@@ -15,7 +15,7 @@ window.casesData = [
           },
           {
             "id": 2,
-            "name": "CZ75自动型 | 丛林虚线",
+            "name": "CZ75 自动型 | 丛林虚线",
             "minWear": 0.06,
             "maxWear": 0.8,
             "image": ""
@@ -587,7 +587,7 @@ window.casesData = [
           },
           {
             "id": 69,
-            "name": "CZ75自动型 | 紫青之色",
+            "name": "CZ75 自动型 | 紫青之色",
             "minWear": 0.06,
             "maxWear": 0.8,
             "image": ""
@@ -894,7 +894,7 @@ window.casesData = [
           },
           {
             "id": 104,
-            "name": "加利尔AR | 隐蔽猎手",
+            "name": "加利尔 AR | 隐蔽猎手",
             "minWear": 0,
             "maxWear": 0.6,
             "image": ""
@@ -1018,7 +1018,7 @@ window.casesData = [
           },
           {
             "id": 118,
-            "name": "加利尔AR | 贤者涂装",
+            "name": "加利尔 AR | 贤者涂装",
             "minWear": 0.06,
             "maxWear": 0.8,
             "image": ""
@@ -1485,7 +1485,7 @@ window.casesData = [
         "skins": [
           {
             "id": 170,
-            "name": "加利尔AR | 水蓝阶地",
+            "name": "加利尔 AR | 水蓝阶地",
             "minWear": 0,
             "maxWear": 0.7,
             "image": ""
@@ -1614,7 +1614,7 @@ window.casesData = [
         "skins": [
           {
             "id": 184,
-            "name": "加利尔AR | 冰核聚变",
+            "name": "加利尔 AR | 冰核聚变",
             "minWear": 0,
             "maxWear": 0.83,
             "image": ""
@@ -1771,7 +1771,7 @@ window.casesData = [
         "skins": [
           {
             "id": 202,
-            "name": "CZ75自动型 | 夜半棕榈",
+            "name": "CZ75 自动型 | 夜半棕榈",
             "minWear": 0,
             "maxWear": 0.5,
             "image": ""
@@ -2006,7 +2006,7 @@ window.casesData = [
         "skins": [
           {
             "id": 229,
-            "name": "加利尔AR | 凤凰冥灯",
+            "name": "加利尔 AR | 凤凰冥灯",
             "minWear": 0,
             "maxWear": 0.7,
             "image": ""
@@ -2076,7 +2076,7 @@ window.casesData = [
           },
           {
             "id": 236,
-            "name": "CZ75自动型 | 粉玑",
+            "name": "CZ75 自动型 | 粉玑",
             "minWear": 0,
             "maxWear": 0.7,
             "image": ""
@@ -2165,7 +2165,7 @@ window.casesData = [
           },
           {
             "id": 248,
-            "name": "加利尔AR | 血橙游骑兵",
+            "name": "加利尔 AR | 血橙游骑兵",
             "minWear": 0,
             "maxWear": 0.75,
             "image": ""
@@ -2474,7 +2474,7 @@ window.casesData = [
           },
           {
             "id": 284,
-            "name": "CZ75自动型 | 蜜金佩斯利",
+            "name": "CZ75 自动型 | 蜜金佩斯利",
             "minWear": 0,
             "maxWear": 0.6,
             "image": ""
@@ -2568,7 +2568,7 @@ window.casesData = [
           },
           {
             "id": 296,
-            "name": "加利尔AR | 天空曼陀罗",
+            "name": "加利尔 AR | 天空曼陀罗",
             "minWear": 0,
             "maxWear": 0.7,
             "image": ""
@@ -3121,7 +3121,7 @@ window.casesData = [
         "skins": [
           {
             "id": 355,
-            "name": "CZ75自动型 | 军队之辉",
+            "name": "CZ75 自动型 | 军队之辉",
             "minWear": 0,
             "maxWear": 0.3,
             "image": ""
@@ -3161,7 +3161,7 @@ window.casesData = [
           },
           {
             "id": 360,
-            "name": "加利尔AR | 都市瓦砾",
+            "name": "加利尔 AR | 都市瓦砾",
             "minWear": 0,
             "maxWear": 0.5,
             "image": ""
@@ -3180,7 +3180,7 @@ window.casesData = [
         "skins": [
           {
             "id": 362,
-            "name": "CZ75自动型 | 翡翠色调",
+            "name": "CZ75 自动型 | 翡翠色调",
             "minWear": 0,
             "maxWear": 0.08,
             "image": ""
@@ -3264,7 +3264,7 @@ window.casesData = [
         "skins": [
           {
             "id": 371,
-            "name": "CZ75自动型 | 绿色格纹",
+            "name": "CZ75 自动型 | 绿色格纹",
             "minWear": 0,
             "maxWear": 0.58,
             "image": ""
@@ -3400,7 +3400,7 @@ window.casesData = [
         "skins": [
           {
             "id": 386,
-            "name": "CZ75自动型 | 幻光构架",
+            "name": "CZ75 自动型 | 幻光构架",
             "minWear": 0,
             "maxWear": 0.8,
             "image": ""
@@ -3506,7 +3506,7 @@ window.casesData = [
         "skins": [
           {
             "id": 399,
-            "name": "加利尔AR | 警告！",
+            "name": "加利尔 AR | 警告！",
             "minWear": 0,
             "maxWear": 0.55,
             "image": ""
@@ -3661,7 +3661,7 @@ window.casesData = [
         "skins": [
           {
             "id": 416,
-            "name": "CZ75自动型 | 复古圣杯",
+            "name": "CZ75 自动型 | 复古圣杯",
             "minWear": 0,
             "maxWear": 0.1,
             "image": ""
@@ -3764,7 +3764,7 @@ window.casesData = [
           },
           {
             "id": 427,
-            "name": "加利尔AR | 多变迷彩",
+            "name": "加利尔 AR | 多变迷彩",
             "minWear": 0,
             "maxWear": 0.6,
             "image": ""
@@ -3848,7 +3848,7 @@ window.casesData = [
           },
           {
             "id": 436,
-            "name": "加利尔AR | 狂哮飓风",
+            "name": "加利尔 AR | 狂哮飓风",
             "minWear": 0.06,
             "maxWear": 0.8,
             "image": ""
@@ -3914,7 +3914,7 @@ window.casesData = [
         "skins": [
           {
             "id": 444,
-            "name": "CZ75自动型 | 翡翠石英",
+            "name": "CZ75 自动型 | 翡翠石英",
             "minWear": 0,
             "maxWear": 0.7,
             "image": ""
@@ -4022,7 +4022,7 @@ window.casesData = [
           },
           {
             "id": 455,
-            "name": "加利尔AR | 冬之森林",
+            "name": "加利尔 AR | 冬之森林",
             "minWear": 0.06,
             "maxWear": 0.8,
             "image": ""
@@ -4410,7 +4410,7 @@ window.casesData = [
         "skins": [
           {
             "id": 497,
-            "name": "加利尔AR | 灰色烟幕",
+            "name": "加利尔 AR | 灰色烟幕",
             "minWear": 0,
             "maxWear": 0.6,
             "image": ""
@@ -4506,7 +4506,7 @@ window.casesData = [
           },
           {
             "id": 510,
-            "name": "加利尔AR | 鸲珠",
+            "name": "加利尔 AR | 鸲珠",
             "minWear": 0,
             "maxWear": 0.6,
             "image": ""
@@ -4710,7 +4710,7 @@ window.casesData = [
         "skins": [
           {
             "id": 534,
-            "name": "CZ75自动型 | 氮化处理",
+            "name": "CZ75 自动型 | 氮化处理",
             "minWear": 0.06,
             "maxWear": 0.8,
             "image": ""
@@ -4991,7 +4991,7 @@ window.casesData = [
         "skins": [
           {
             "id": 563,
-            "name": "CZ75自动型 | 燕尾",
+            "name": "CZ75 自动型 | 燕尾",
             "minWear": 0,
             "maxWear": 0.8,
             "image": ""
@@ -5005,7 +5005,7 @@ window.casesData = [
           },
           {
             "id": 565,
-            "name": "加利尔AR | 燕尾",
+            "name": "加利尔 AR | 燕尾",
             "minWear": 0,
             "maxWear": 0.8,
             "image": ""
@@ -5127,7 +5127,7 @@ window.casesData = [
           },
           {
             "id": 578,
-            "name": "加利尔AR | 渐变琥珀",
+            "name": "加利尔 AR | 渐变琥珀",
             "minWear": 0,
             "maxWear": 0.4,
             "image": ""
@@ -5256,7 +5256,7 @@ window.casesData = [
         "skins": [
           {
             "id": 592,
-            "name": "CZ75自动型 | 银质",
+            "name": "CZ75 自动型 | 银质",
             "minWear": 0,
             "maxWear": 0.08,
             "image": ""
@@ -5303,7 +5303,7 @@ window.casesData = [
           },
           {
             "id": 598,
-            "name": "加利尔AR | 废墟黄昏",
+            "name": "加利尔 AR | 废墟黄昏",
             "minWear": 0,
             "maxWear": 0.6,
             "image": ""
@@ -5566,7 +5566,7 @@ window.casesData = [
         "skins": [
           {
             "id": 626,
-            "name": "加利尔AR | 彩虹勺",
+            "name": "加利尔 AR | 彩虹勺",
             "minWear": 0,
             "maxWear": 0.554422,
             "image": ""
@@ -5701,7 +5701,7 @@ window.casesData = [
           },
           {
             "id": 640,
-            "name": "加利尔AR | 绿苹果",
+            "name": "加利尔 AR | 绿苹果",
             "minWear": 0,
             "maxWear": 0.3,
             "image": ""
@@ -5924,7 +5924,7 @@ window.casesData = [
           },
           {
             "id": 666,
-            "name": "加利尔AR | 地狱看门犬",
+            "name": "加利尔 AR | 地狱看门犬",
             "minWear": 0,
             "maxWear": 0.9,
             "image": ""
@@ -5989,7 +5989,7 @@ window.casesData = [
         "skins": [
           {
             "id": 673,
-            "name": "加利尔AR | 金属榨汁机",
+            "name": "加利尔 AR | 金属榨汁机",
             "minWear": 0,
             "maxWear": 0.6,
             "image": ""
@@ -6092,7 +6092,7 @@ window.casesData = [
           },
           {
             "id": 684,
-            "name": "加利尔AR | NV",
+            "name": "加利尔 AR | NV",
             "minWear": 0,
             "maxWear": 0.47,
             "image": ""
@@ -6165,7 +6165,7 @@ window.casesData = [
         "skins": [
           {
             "id": 693,
-            "name": "CZ75自动型 | 回转",
+            "name": "CZ75 自动型 | 回转",
             "minWear": 0,
             "maxWear": 0.57,
             "image": ""
@@ -6242,7 +6242,7 @@ window.casesData = [
           },
           {
             "id": 701,
-            "name": "加利尔AR | 战吼斑纹",
+            "name": "加利尔 AR | 战吼斑纹",
             "minWear": 0,
             "maxWear": 0.75,
             "image": ""
@@ -6600,7 +6600,7 @@ window.casesData = [
           },
           {
             "id": 747,
-            "name": "CZ75自动型 | 先驱",
+            "name": "CZ75 自动型 | 先驱",
             "minWear": 0,
             "maxWear": 0.7,
             "image": ""
@@ -6640,7 +6640,7 @@ window.casesData = [
           },
           {
             "id": 752,
-            "name": "加利尔AR | 经济",
+            "name": "加利尔 AR | 经济",
             "minWear": 0.1,
             "maxWear": 0.85,
             "image": ""
@@ -6953,7 +6953,7 @@ window.casesData = [
           },
           {
             "id": 793,
-            "name": "CZ75自动型 | 辛迪加",
+            "name": "CZ75 自动型 | 辛迪加",
             "minWear": 0,
             "maxWear": 0.7,
             "image": ""
@@ -8185,7 +8185,7 @@ window.casesData = [
         "skins": [
           {
             "id": 949,
-            "name": "CZ75自动型 | 战术高手",
+            "name": "CZ75 自动型 | 战术高手",
             "minWear": 0,
             "maxWear": 0.7,
             "image": ""
@@ -8865,7 +8865,7 @@ window.casesData = [
           },
           {
             "id": 1038,
-            "name": "CZ75自动型 | 做旧手艺",
+            "name": "CZ75 自动型 | 做旧手艺",
             "minWear": 0,
             "maxWear": 1,
             "image": ""
@@ -9230,7 +9230,7 @@ window.casesData = [
           },
           {
             "id": 1085,
-            "name": "CZ75自动型 | 经济",
+            "name": "CZ75 自动型 | 经济",
             "minWear": 0,
             "maxWear": 1,
             "image": ""
@@ -10272,7 +10272,7 @@ window.casesData = [
           },
           {
             "id": 1222,
-            "name": "加利尔AR | 沙尘暴",
+            "name": "加利尔 AR | 沙尘暴",
             "minWear": 0.1,
             "maxWear": 0.6,
             "image": ""
@@ -11537,7 +11537,7 @@ window.casesData = [
         "skins": [
           {
             "id": 1385,
-            "name": "加利尔AR | 凤凰商号",
+            "name": "加利尔 AR | 凤凰商号",
             "minWear": 0,
             "maxWear": 0.8,
             "image": ""
@@ -12383,7 +12383,7 @@ window.casesData = [
         "skins": [
           {
             "id": 1497,
-            "name": "加利尔AR | 深红海啸",
+            "name": "加利尔 AR | 深红海啸",
             "minWear": 0,
             "maxWear": 0.55,
             "image": ""
@@ -12430,7 +12430,7 @@ window.casesData = [
           },
           {
             "id": 1503,
-            "name": "CZ75自动型 | 相柳",
+            "name": "CZ75 自动型 | 相柳",
             "minWear": 0,
             "maxWear": 0.56,
             "image": ""
@@ -12710,7 +12710,7 @@ window.casesData = [
           },
           {
             "id": 1540,
-            "name": "加利尔AR | 蓝钛",
+            "name": "加利尔 AR | 蓝钛",
             "minWear": 0,
             "maxWear": 0.04,
             "image": ""
@@ -13224,14 +13224,14 @@ window.casesData = [
         "skins": [
           {
             "id": 1609,
-            "name": "CZ75自动型 | 聚合物",
+            "name": "CZ75 自动型 | 聚合物",
             "minWear": 0,
             "maxWear": 0.5,
             "image": ""
           },
           {
             "id": 1610,
-            "name": "加利尔AR | 黑砂",
+            "name": "加利尔 AR | 黑砂",
             "minWear": 0,
             "maxWear": 1,
             "image": ""
@@ -13542,14 +13542,14 @@ window.casesData = [
         "skins": [
           {
             "id": 1650,
-            "name": "CZ75自动型 | 螺形扭转",
+            "name": "CZ75 自动型 | 螺形扭转",
             "minWear": 0,
             "maxWear": 1,
             "image": ""
           },
           {
             "id": 1651,
-            "name": "加利尔AR | 神祇",
+            "name": "加利尔 AR | 神祇",
             "minWear": 0,
             "maxWear": 0.6,
             "image": ""
@@ -13762,7 +13762,7 @@ window.casesData = [
         "skins": [
           {
             "id": 1677,
-            "name": "CZ75自动型 | 短趾雕",
+            "name": "CZ75 自动型 | 短趾雕",
             "minWear": 0,
             "maxWear": 0.9,
             "image": ""
@@ -13856,7 +13856,7 @@ window.casesData = [
         "skins": [
           {
             "id": 1689,
-            "name": "加利尔AR | 迷人眼",
+            "name": "加利尔 AR | 迷人眼",
             "minWear": 0,
             "maxWear": 1,
             "image": ""
@@ -14080,7 +14080,7 @@ window.casesData = [
         "skins": [
           {
             "id": 1718,
-            "name": "CZ75自动型 | 印花板",
+            "name": "CZ75 自动型 | 印花板",
             "minWear": 0,
             "maxWear": 1,
             "image": ""
@@ -14440,7 +14440,7 @@ window.casesData = [
         "skins": [
           {
             "id": 1765,
-            "name": "CZ75自动型 | 世仇",
+            "name": "CZ75 自动型 | 世仇",
             "minWear": 0,
             "maxWear": 1,
             "image": ""
@@ -14454,7 +14454,7 @@ window.casesData = [
           },
           {
             "id": 1767,
-            "name": "加利尔AR | 破坏者",
+            "name": "加利尔 AR | 破坏者",
             "minWear": 0,
             "maxWear": 1,
             "image": ""
@@ -14758,7 +14758,7 @@ window.casesData = [
         "skins": [
           {
             "id": 1806,
-            "name": "CZ75自动型 | 蓝巢",
+            "name": "CZ75 自动型 | 蓝巢",
             "minWear": 0,
             "maxWear": 0.4,
             "image": ""
@@ -15328,7 +15328,7 @@ window.casesData = [
         "skins": [
           {
             "id": 1883,
-            "name": "CZ75自动型 | 深红之网",
+            "name": "CZ75 自动型 | 深红之网",
             "minWear": 0.06,
             "maxWear": 0.8,
             "image": ""
@@ -15368,7 +15368,7 @@ window.casesData = [
         "skins": [
           {
             "id": 1888,
-            "name": "CZ75自动型 | 花纹钢板",
+            "name": "CZ75 自动型 | 花纹钢板",
             "minWear": 0,
             "maxWear": 0.2,
             "image": ""
@@ -15401,7 +15401,7 @@ window.casesData = [
         "skins": [
           {
             "id": 1892,
-            "name": "CZ75自动型 | 梅红时刻",
+            "name": "CZ75 自动型 | 梅红时刻",
             "minWear": 0,
             "maxWear": 0.4,
             "image": ""
@@ -15420,7 +15420,7 @@ window.casesData = [
         "skins": [
           {
             "id": 1894,
-            "name": "CZ75自动型 | 维多利亚",
+            "name": "CZ75 自动型 | 维多利亚",
             "minWear": 0,
             "maxWear": 0.75,
             "image": ""
@@ -15863,7 +15863,7 @@ window.casesData = [
         "skins": [
           {
             "id": 1955,
-            "name": "CZ75自动型 | 深红之网",
+            "name": "CZ75 自动型 | 深红之网",
             "minWear": 0.06,
             "maxWear": 0.8,
             "image": ""
@@ -15903,7 +15903,7 @@ window.casesData = [
         "skins": [
           {
             "id": 1960,
-            "name": "CZ75自动型 | 花纹钢板",
+            "name": "CZ75 自动型 | 花纹钢板",
             "minWear": 0,
             "maxWear": 0.2,
             "image": ""
@@ -15936,7 +15936,7 @@ window.casesData = [
         "skins": [
           {
             "id": 1964,
-            "name": "CZ75自动型 | 梅红时刻",
+            "name": "CZ75 自动型 | 梅红时刻",
             "minWear": 0,
             "maxWear": 0.4,
             "image": ""
@@ -15955,7 +15955,7 @@ window.casesData = [
         "skins": [
           {
             "id": 1966,
-            "name": "CZ75自动型 | 维多利亚",
+            "name": "CZ75 自动型 | 维多利亚",
             "minWear": 0,
             "maxWear": 0.75,
             "image": ""
@@ -16027,7 +16027,7 @@ window.casesData = [
         "skins": [
           {
             "id": 1974,
-            "name": "加利尔AR | 冷石",
+            "name": "加利尔 AR | 冷石",
             "minWear": 0,
             "maxWear": 0.9,
             "image": ""
@@ -16214,7 +16214,7 @@ window.casesData = [
           },
           {
             "id": 1997,
-            "name": "加利尔AR | 支离破碎",
+            "name": "加利尔 AR | 支离破碎",
             "minWear": 0.06,
             "maxWear": 0.8,
             "image": ""
@@ -16770,7 +16770,7 @@ window.casesData = [
           },
           {
             "id": 2072,
-            "name": "加利尔AR | 支离破碎",
+            "name": "加利尔 AR | 支离破碎",
             "minWear": 0.06,
             "maxWear": 0.8,
             "image": ""
@@ -17895,14 +17895,14 @@ window.casesData = [
         "skins": [
           {
             "id": 2215,
-            "name": "CZ75自动型 | 红鹰",
+            "name": "CZ75 自动型 | 红鹰",
             "minWear": 0,
             "maxWear": 1,
             "image": ""
           },
           {
             "id": 2216,
-            "name": "加利尔AR | 火线冲锋",
+            "name": "加利尔 AR | 火线冲锋",
             "minWear": 0,
             "maxWear": 1,
             "image": ""
@@ -18208,7 +18208,7 @@ window.casesData = [
           },
           {
             "id": 2256,
-            "name": "加利尔AR | 毁灭者",
+            "name": "加利尔 AR | 毁灭者",
             "minWear": 0,
             "maxWear": 0.7,
             "image": ""
@@ -19190,7 +19190,7 @@ window.casesData = [
         "skins": [
           {
             "id": 2383,
-            "name": "加利尔AR | 橙黄 DDPAT",
+            "name": "加利尔 AR | 橙黄 DDPAT",
             "minWear": 0.06,
             "maxWear": 0.8,
             "image": ""
@@ -19779,7 +19779,7 @@ window.casesData = [
           },
           {
             "id": 2462,
-            "name": "加利尔AR | ~甜甜的~",
+            "name": "加利尔 AR | ~甜甜的~",
             "minWear": 0,
             "maxWear": 0.55,
             "image": ""
@@ -21029,7 +21029,7 @@ window.casesData = [
         "skins": [
           {
             "id": 2625,
-            "name": "加利尔AR | 火箭冰棒",
+            "name": "加利尔 AR | 火箭冰棒",
             "minWear": 0,
             "maxWear": 1,
             "image": ""
@@ -21116,7 +21116,7 @@ window.casesData = [
         "skins": [
           {
             "id": 2636,
-            "name": "CZ75自动型 | 黄夹克",
+            "name": "CZ75 自动型 | 黄夹克",
             "minWear": 0,
             "maxWear": 1,
             "image": ""
@@ -21317,7 +21317,7 @@ window.casesData = [
           },
           {
             "id": 2661,
-            "name": "加利尔AR | 信号灯",
+            "name": "加利尔 AR | 信号灯",
             "minWear": 0,
             "maxWear": 0.5,
             "image": ""
@@ -21803,7 +21803,7 @@ window.casesData = [
           },
           {
             "id": 2726,
-            "name": "加利尔AR | 信号灯",
+            "name": "加利尔 AR | 信号灯",
             "minWear": 0,
             "maxWear": 0.5,
             "image": ""
@@ -21993,7 +21993,7 @@ window.casesData = [
           },
           {
             "id": 2748,
-            "name": "加利尔AR | 喧闹骷髅",
+            "name": "加利尔 AR | 喧闹骷髅",
             "minWear": 0.35,
             "maxWear": 0.85,
             "image": ""
@@ -22273,7 +22273,7 @@ window.casesData = [
           },
           {
             "id": 2785,
-            "name": "CZ75自动型 | 猛虎",
+            "name": "CZ75 自动型 | 猛虎",
             "minWear": 0,
             "maxWear": 1,
             "image": ""
@@ -22486,7 +22486,7 @@ window.casesData = [
           },
           {
             "id": 2811,
-            "name": "CZ75自动型 | 猛虎",
+            "name": "CZ75 自动型 | 猛虎",
             "minWear": 0,
             "maxWear": 1,
             "image": ""
@@ -22624,7 +22624,7 @@ window.casesData = [
           },
           {
             "id": 2827,
-            "name": "加利尔AR | 控制",
+            "name": "加利尔 AR | 控制",
             "minWear": 0,
             "maxWear": 0.798995,
             "image": ""

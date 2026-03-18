@@ -531,27 +531,82 @@ html {
     background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%);
     border-radius: 10px;
     border: 1px solid rgba(102, 126, 234, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: nowrap;
 }
 
 .similar-search-title {
     font-size: 13px;
     font-weight: 600;
     color: #4a5568;
-    margin-bottom: 10px;
+    white-space: nowrap;
 }
 
 .similar-search-interval {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 10px;
+    flex-wrap: nowrap;
 }
 
 .interval-label {
     font-size: 12px;
     color: #718096;
     white-space: nowrap;
+}
+
+.interval-inputs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: nowrap;
+}
+
+.interval-input {
+    width: 70px;
+    padding: 4px 6px;
+    border: 1px solid #cbd5e0;
+    border-radius: 4px;
+    font-size: 12px;
+    text-align: center;
+}
+
+.interval-separator {
+    font-size: 12px;
+    color: #718096;
+    white-space: nowrap;
+}
+
+.interval-current {
+    font-size: 12px;
+    font-weight: 600;
+    color: #2d3748;
+    background: #edf2f7;
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    min-width: 40px;
+    text-align: center;
+}
+
+.similar-search-btn {
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.similar-search-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
 }
 
 .interval-inputs {
@@ -973,13 +1028,15 @@ html {
 @media (max-width: 767px) {
     html {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-width: 1000px;
+        min-width: 100%;
+        height: 100%;
     }
     
     body {
-        overflow-x: auto;
+        overflow-x: hidden;
         overflow-y: auto;
-        min-width: 1000px;
+        min-width: 100%;
+        width: 100%;
         height: auto;
         min-height: 100vh;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -1003,17 +1060,18 @@ html {
     }
     
     .page-wrapper {
-        min-width: 1000px;
-        width: auto;
-        overflow-x: auto;
+        min-width: 100%;
+        width: 100%;
+        overflow-x: hidden;
         overflow-y: auto;
         height: auto !important;
-        min-height: auto;
+        min-height: 100vh;
         background: transparent;
     }
     
     .page-content {
-        min-width: 1000px;
+        min-width: 100%;
+        width: 100%;
         padding-bottom: 0;
         height: auto !important;
         overflow: visible !important;
@@ -1022,17 +1080,19 @@ html {
     .page-panel {
         height: auto !important;
         overflow: visible !important;
+        width: 100%;
     }
     
     .page-panel .container {
         height: auto !important;
         overflow: visible !important;
+        width: 100%;
     }
     
     .container {
-        min-width: 1000px;
-        width: auto;
-        overflow-x: visible;
+        min-width: 100%;
+        width: 100%;
+        overflow-x: hidden;
         overflow-y: visible;
         height: auto;
         min-height: auto;
@@ -1040,20 +1100,22 @@ html {
     }
     
     .main-content {
-        min-width: 1000px;
-        width: auto;
-        flex-direction: row;
+        min-width: 100%;
+        width: 100%;
+        flex-direction: column;
         flex-wrap: nowrap;
-        overflow-x: visible;
+        overflow-x: hidden;
         overflow-y: visible;
         height: auto;
         min-height: auto;
         background: transparent;
+        padding: 10px;
+        gap: 10px;
     }
     
     .left-container {
-        min-width: 300px;
-        width: auto;
+        min-width: 100%;
+        width: 100%;
         flex-shrink: 0;
         height: auto;
         min-height: auto;
@@ -1061,8 +1123,8 @@ html {
     }
     
     .right-container {
-        min-width: 650px;
-        width: auto;
+        min-width: 100%;
+        width: 100%;
         flex-shrink: 0;
         height: auto;
         min-height: auto;
@@ -1071,21 +1133,24 @@ html {
     
     /* 反向汰换页面移动端样式 */
     #reversePage .main-content {
-        min-width: 1000px;
+        min-width: 100%;
+        width: 100%;
         height: auto;
         min-height: auto;
         background: transparent;
     }
     
     #reversePage .left-container {
-        min-width: 300px;
+        min-width: 100%;
+        width: 100%;
         height: auto;
         min-height: auto;
         background: transparent;
     }
     
     #reversePage .right-container {
-        min-width: 650px;
+        min-width: 100%;
+        width: 100%;
         height: auto;
         min-height: auto;
         background: transparent;
@@ -1119,6 +1184,100 @@ html {
     #resultsContainer {
         overflow-y: auto;
         overflow-x: hidden;
+    }
+    
+    /* 移动端下级皮肤磨损值卡片样式 */
+    .result-list {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .result-card {
+        flex: 1 1 100%;
+        min-width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 12px;
+    }
+    
+    .result-skin-name {
+        flex: 1;
+        font-size: 13px;
+        word-break: break-all;
+    }
+    
+    .result-wear {
+        font-size: 12px;
+        min-width: 70px;
+        text-align: center;
+    }
+    
+    .result-price {
+        font-size: 12px;
+        min-width: 50px;
+        text-align: right;
+    }
+    
+    /* 移动端当前皮肤信息样式 */
+    .current-skins-container {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .current-skin-info {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+    
+    .current-skin-name {
+        flex: 1 1 100%;
+        font-size: 13px;
+    }
+    
+    .current-skin-wear,
+    .current-skin-price,
+    .current-skin-crate {
+        flex: 1;
+        min-width: 80px;
+    }
+    
+    /* 移动端相似皮肤查找区域样式 */
+    .similar-search-section {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .similar-search-interval {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+    }
+    
+    .interval-inputs {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .interval-input {
+        width: 80px;
+    }
+    
+    .similar-search-btn {
+        width: 100%;
+    }
+    
+    /* 移动端相似皮肤卡片样式 */
+    .similar-skins-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .similar-skin-card {
+        padding: 10px;
     }
 }
 

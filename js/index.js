@@ -15,15 +15,16 @@ const state = {
 let yyypPricesData = {};
 
 // 当前版本号（每次更新时修改此值）
-const APP_VERSION = '26.3.17.14';
+const APP_VERSION = '26.3.18.2';
 
 // 更新公告内容
 const UPDATE_NOTES = `
 <h3>更新公告 v${APP_VERSION}</h3>
 <ul>
-    <li>粗略修改了页面布局</li>
-    <li>反向汰换可以查看磨损区间相似的皮肤数据</li>
-    <li>显示皮肤YYYP售价</li>
+    <li>修改了页面布局，推荐在PC端使用，移动端只显示反向汰换</li>
+    <li>反向汰换可以修改相似皮肤查找的磨损区间</li>
+    <li>反向汰换模拟结果显示皮肤在悠悠有品的售价，仅作为炼金配方参考，不会经常更新</li>
+    <li>由于buff和yyyp的皮肤名字一小部分有差异，会导致皮肤价格获取不到</li>
 </ul>
 <p class="update-tip">点击空白处或关闭按钮关闭此窗口</p>
 `;
@@ -223,12 +224,6 @@ function setupEventListeners() {
     elements.searchInput.addEventListener('input', handleSearch);
     elements.wearInput.addEventListener('input', handleWearInput);
     elements.calculateBtn.addEventListener('click', calculateResults);
-    
-    // 查找相似皮肤按钮
-    const searchSimilarBtn = document.getElementById('searchSimilarBtn');
-    if (searchSimilarBtn) {
-        searchSimilarBtn.addEventListener('click', searchAndDisplaySimilarSkins);
-    }
     
     // 皮肤级别下拉框
     elements.levelSelect.addEventListener('change', (e) => {
@@ -648,19 +643,42 @@ function displayResults(results) {
     }).join('');
     html += '</div>';
     
-    // 3. 相似皮肤区域（初始为空，点击查找后填充）
+    // 3. 相似皮肤查找区域
+    const currentMaxWearValue = state.selectedSkin.maxWear.toFixed(2);
+    html += '<div class="similar-search-section">';
+    html += '<div class="similar-search-title">🔍 相似皮肤查找</div>';
+    html += '<div class="similar-search-interval">';
+    html += '<span class="interval-label">最大磨损值区间：</span>';
+    html += '<div class="interval-inputs">';
+    html += `<input type="number" class="interval-input" id="minWearInterval" placeholder="下限" min="0" max="${currentMaxWearValue}" step="0.01" value="${currentMaxWearValue}">`;
+    html += '<span class="interval-separator">-</span>';
+    html += `<span class="interval-current" id="currentMaxWear">${currentMaxWearValue}</span>`;
+    html += '<span class="interval-separator">-</span>';
+    html += `<input type="number" class="interval-input" id="maxWearInterval" placeholder="上限" min="${currentMaxWearValue}" max="1" step="0.01" value="${currentMaxWearValue}">`;
+    html += '</div>';
+    html += '</div>';
+    html += '<button class="similar-search-btn" id="searchSimilarBtn">🔎 查找相似皮肤</button>';
+    html += '</div>';
+    
+    // 4. 相似皮肤区域（初始为空，点击查找后填充）
     html += '<div class="result-section-title">🔗 相似皮肤</div>';
     html += '<div id="similarSkinsContainer">';
     html += '<div class="no-data">请点击"查找相似皮肤"按钮</div>';
     html += '</div>';
     
-    // 4. 相似皮肤下级磨损值区域
+    // 5. 相似皮肤下级磨损值区域
     html += '<div class="result-section-title">📊 相似皮肤下级磨损值</div>';
     html += '<div id="similarWearContainer">';
     html += '<div class="no-data">请先选择相似皮肤</div>';
     html += '</div>';
     
     elements.resultsContainer.innerHTML = html;
+    
+    // 重新绑定查找按钮事件
+    const searchBtn = document.getElementById('searchSimilarBtn');
+    if (searchBtn) {
+        searchBtn.addEventListener('click', searchAndDisplaySimilarSkins);
+    }
     
     // 保存当前结果
     state.currentResults = results;
