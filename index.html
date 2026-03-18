@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CS:GO 反向汰换模拟</title>
-    <link rel="stylesheet" href="css/index.css?v=26.3.18.2">
+    <link rel="stylesheet" href="css/index.css?v=26.3.18.3">
     <script>
         var _hmt = _hmt || [];
         (function() {
@@ -16,6 +16,15 @@
     </script>
 </head>
 <body>
+    <!-- 加载状态提示 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">正在加载数据...</div>
+            <div class="loading-progress" id="loadingProgress">请稍候，首次加载可能需要几秒钟</div>
+        </div>
+    </div>
+    
     <!-- 更新公告模态框 -->
     <div class="update-modal" id="updateModal" onclick="if(event.target === this) closeUpdateNotes()">
         <div class="update-modal-content">
@@ -315,13 +324,13 @@
         </div>
     </div>
     
-    <!-- 引入数据文件 -->
-    <script src="js/data.js"></script>
-    <script src="js/original_skins_data.js"></script>
-    <script src="js/processed_skins_data.js"></script>
-    <script src="js/yyyp_prices.js"></script>
-    <script src="js/index.js"></script>
-    <script src="js/user_inventory_enhanced.js"></script>
+    <!-- 引入数据文件 - 使用defer优化加载 -->
+    <script src="js/data.js" defer></script>
+    <script src="js/original_skins_data.js" defer></script>
+    <script src="js/processed_skins_data.js" defer></script>
+    <script src="js/yyyp_prices.js" defer></script>
+    <script src="js/index.js" defer></script>
+    <script src="js/user_inventory_enhanced.js" defer></script>
     <!-- <script>
         (new Image()).src = "https://visitor-badge.laobi.icu/badge?page_id=339-8-8.github.io";
     </script> -->

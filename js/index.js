@@ -15,12 +15,13 @@ const state = {
 let yyypPricesData = {};
 
 // 当前版本号（每次更新时修改此值）
-const APP_VERSION = '26.3.18.2';
+const APP_VERSION = '26.3.18.3';
 
 // 更新公告内容
 const UPDATE_NOTES = `
 <h3>更新公告 v${APP_VERSION}</h3>
 <ul>
+    <li>第一次加载数据需要一点时间</li>
     <li>修改了页面布局，推荐在PC端使用，移动端只显示反向汰换</li>
     <li>反向汰换可以修改相似皮肤查找的磨损区间</li>
     <li>反向汰换模拟结果显示皮肤在悠悠有品的售价，仅作为炼金配方参考，不会经常更新</li>
@@ -118,6 +119,9 @@ const elements = {
 
 // 初始化应用
 function init() {
+    // 更新加载进度
+    updateLoadingProgress('正在初始化...');
+    
     // 重新获取DOM元素，确保在DOM加载完成后
     elements.searchInput = document.getElementById('searchInput');
     elements.caseList = document.getElementById('caseList');
@@ -131,6 +135,7 @@ function init() {
     // 检查是否所有必需的元素都存在
     if (!elements.levelSelect || !elements.caseList) {
         console.error('Required DOM elements not found');
+        hideLoading();
         return;
     }
     
@@ -145,23 +150,48 @@ function init() {
     if (state.cases.length > 0) {
         selectCase(state.cases[0]);
     }
+    
+    // 隐藏加载提示
+    hideLoading();
+}
+
+// 更新加载进度提示
+function updateLoadingProgress(text) {
+    const progressEl = document.getElementById('loadingProgress');
+    if (progressEl) {
+        progressEl.textContent = text;
+    }
+}
+
+// 隐藏加载提示
+function hideLoading() {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) {
+        loadingOverlay.classList.add('hidden');
+        setTimeout(() => {
+            loadingOverlay.style.display = 'none';
+        }, 300);
+    }
 }
 
 // 加载皮肤价格数据
 function loadSkinPrices() {
-    // 检查全局变量是否存在，如果不存在则等待
+    updateLoadingProgress('正在加载价格数据...');
+    
     let attempts = 0;
-    const maxAttempts = 50; // 最多等待5秒
+    const maxAttempts = 50;
     
     const checkData = () => {
         if (window.yyypPrices) {
             yyypPricesData = window.yyypPrices;
             console.log('YYYP价格数据加载成功，共', Object.keys(yyypPricesData).length, '条数据');
+            updateLoadingProgress('价格数据加载完成');
         } else if (attempts < maxAttempts) {
             attempts++;
             setTimeout(checkData, 100);
         } else {
             console.warn('YYYP价格数据加载超时');
+            updateLoadingProgress('价格数据加载超时，部分功能可能受限');
         }
     };
     
