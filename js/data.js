@@ -409,7 +409,7 @@ window.casesData = [
           },
           {
             "id": 48,
-            "name": "宙斯x27电击枪 | 沼泽DDPAT",
+            "name": "宙斯 X27 电击枪 | 沼泽DDPAT",
             "minWear": 0,
             "maxWear": 0.6,
             "image": ""
@@ -449,7 +449,7 @@ window.casesData = [
           },
           {
             "id": 53,
-            "name": "加利尔AR | 酸蚀镖",
+            "name": "加利尔 AR | 酸蚀镖",
             "minWear": 0,
             "maxWear": 0.6,
             "image": ""
@@ -477,7 +477,7 @@ window.casesData = [
           },
           {
             "id": 57,
-            "name": "R8左轮手枪 | 叶蝉",
+            "name": "R8 左轮手枪 | 叶蝉",
             "minWear": 0,
             "maxWear": 0.65098,
             "image": ""
@@ -524,7 +524,7 @@ window.casesData = [
           },
           {
             "id": 63,
-            "name": "USP消音版 | 椰风花语",
+            "name": "USP 消音版 | 椰风花语",
             "minWear": 0,
             "maxWear": 0.55,
             "image": ""
@@ -2575,7 +2575,7 @@ window.casesData = [
           },
           {
             "id": 297,
-            "name": "宙斯x27电击枪 | 大地曼陀罗",
+            "name": "宙斯 X27 电击枪 | 大地曼陀罗",
             "minWear": 0,
             "maxWear": 0.66,
             "image": ""
@@ -4541,7 +4541,7 @@ window.casesData = [
           },
           {
             "id": 515,
-            "name": "宙斯x27电击枪 | 电光幽蓝",
+            "name": "宙斯 X27 电击枪 | 电光幽蓝",
             "minWear": 0,
             "maxWear": 0.75,
             "image": ""
@@ -5774,7 +5774,7 @@ window.casesData = [
           },
           {
             "id": 649,
-            "name": "宙斯x27电击枪 | 充电宝",
+            "name": "宙斯 X27 电击枪 | 充电宝",
             "minWear": 0,
             "maxWear": 1,
             "image": ""
@@ -6055,7 +6055,7 @@ window.casesData = [
           },
           {
             "id": 681,
-            "name": "宙斯x27电击枪 | 鼾龙传说",
+            "name": "宙斯 X27 电击枪 | 鼾龙传说",
             "minWear": 0,
             "maxWear": 0.8,
             "image": ""
@@ -16988,7 +16988,7 @@ window.casesData = [
           },
           {
             "id": 2098,
-            "name": "宙斯x27电击枪 | 奥林匹斯",
+            "name": "宙斯 X27 电击枪 | 奥林匹斯",
             "minWear": 0,
             "maxWear": 0.67,
             "image": ""
@@ -22645,7 +22645,7 @@ window.casesData = [
           },
           {
             "id": 2830,
-            "name": "宙斯x27电击枪 | 当岁鱼",
+            "name": "宙斯 X27 电击枪 | 当岁鱼",
             "minWear": 0,
             "maxWear": 0.7,
             "image": ""

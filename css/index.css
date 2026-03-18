@@ -524,6 +524,163 @@ html {
     background: linear-gradient(135deg, #38a169, #2f855a);
 }
 
+/* 相似皮肤查找区域 */
+.similar-search-section {
+    margin-top: 16px;
+    padding: 12px;
+    background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%);
+    border-radius: 10px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.similar-search-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 10px;
+}
+
+.similar-search-interval {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.interval-label {
+    font-size: 12px;
+    color: #718096;
+    white-space: nowrap;
+}
+
+.interval-inputs {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.interval-input {
+    width: 60px;
+    padding: 4px 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 12px;
+    text-align: center;
+}
+
+.interval-separator {
+    font-size: 14px;
+    color: #a0aec0;
+}
+
+.interval-current {
+    font-size: 12px;
+    font-weight: 600;
+    color: #667eea;
+    background: rgba(102, 126, 234, 0.15);
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+
+.similar-search-btn {
+    width: 100%;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.similar-search-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.similar-search-btn:active {
+    transform: translateY(0);
+}
+
+/* 相似皮肤网格 */
+.similar-skins-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+}
+
+.similar-skin-card {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.similar-skin-card:hover {
+    border-color: #667eea;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+.similar-skin-card.selected {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+}
+
+.similar-skin-card.selected .similar-skin-name,
+.similar-skin-card.selected .similar-skin-crate,
+.similar-skin-card.selected .similar-skin-wear-range {
+    color: white;
+}
+
+.similar-skin-card .similar-skin-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 4px;
+    word-break: break-word;
+}
+
+.similar-skin-card .similar-skin-crate {
+    font-size: 10px;
+    color: #718096;
+    margin-bottom: 2px;
+}
+
+.similar-skin-card .similar-skin-wear-range {
+    font-size: 9px;
+    color: #a0aec0;
+}
+
+/* 选中的相似皮肤信息 */
+.selected-similar-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(102, 126, 234, 0.1);
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.selected-similar-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.selected-similar-crate {
+    font-size: 11px;
+    color: #718096;
+    background: rgba(102, 126, 234, 0.15);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
 /* 结果区域 */
 .results-section {
     background: white;
@@ -541,7 +698,7 @@ html {
     min-height: 350px;
     overflow-y: auto;
     overflow-x: hidden;
-    padding-right: 0;
+    padding-right: 12px;
     margin-right: 0;
     /* 确保滚动条不占用空间 */
     scrollbar-gutter: stable;
@@ -788,8 +945,31 @@ html {
     border: 1px solid #81e6d9;
 }
 
+.result-price {
+    font-size: 12px;
+    font-weight: 600;
+    color: #e53e3e;
+    min-width: 60px;
+    text-align: center;
+    white-space: nowrap;
+    background: #fff5f5;
+    padding: 4px 6px;
+    border-radius: 4px;
+    border: 1px solid #feb2b2;
+}
+
+.current-skin-price {
+    font-size: 11px;
+    font-weight: 600;
+    color: #e53e3e;
+    background: #fff5f5;
+    padding: 3px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
 /* 响应式设计 - 桌面端优化 */
-/* 移动端样式 - 允许左右上下滚动浏览 */
+/* 移动端样式 - 只显示反向汰换页面，隐藏导航栏 */
 @media (max-width: 767px) {
     html {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -807,14 +987,46 @@ html {
         background-size: cover;
     }
     
+    /* 隐藏导航栏 */
+    .sidebar-toggle {
+        display: none !important;
+    }
+    
+    /* 只显示反向汰换页面，隐藏其他页面 */
+    #reversePage {
+        display: flex !important;
+    }
+    
+    #quickPage,
+    #noticePage {
+        display: none !important;
+    }
+    
     .page-wrapper {
         min-width: 1000px;
         width: auto;
         overflow-x: auto;
         overflow-y: auto;
-        height: auto;
-        min-height: 100vh;
+        height: auto !important;
+        min-height: auto;
         background: transparent;
+    }
+    
+    .page-content {
+        min-width: 1000px;
+        padding-bottom: 0;
+        height: auto !important;
+        overflow: visible !important;
+    }
+    
+    .page-panel {
+        height: auto !important;
+        overflow: visible !important;
+    }
+    
+    .page-panel .container {
+        height: auto !important;
+        overflow: visible !important;
     }
     
     .container {
@@ -823,7 +1035,7 @@ html {
         overflow-x: visible;
         overflow-y: visible;
         height: auto;
-        min-height: 100vh;
+        min-height: auto;
         background: rgba(255, 255, 255, 0.95);
     }
     
@@ -857,28 +1069,6 @@ html {
         background: transparent;
     }
     
-    /* 一键汰换页面移动端样式 */
-    #quickPage .main-content {
-        min-width: 1200px;
-        height: auto;
-        min-height: auto;
-        background: transparent;
-    }
-    
-    #quickPage .left-container {
-        min-width: 350px;
-        height: auto;
-        min-height: auto;
-        background: transparent;
-    }
-    
-    #quickPage .right-container {
-        min-width: 800px;
-        height: auto;
-        min-height: auto;
-        background: transparent;
-    }
-    
     /* 反向汰换页面移动端样式 */
     #reversePage .main-content {
         min-width: 1000px;
@@ -899,75 +1089,6 @@ html {
         height: auto;
         min-height: auto;
         background: transparent;
-    }
-    
-    /* 注意事项页面移动端样式 */
-    #noticePage .main-content {
-        min-width: 800px;
-        justify-content: center;
-        height: auto;
-        min-height: auto;
-        background: transparent;
-    }
-    
-    #noticePage .notice-container {
-        min-width: 700px;
-        height: auto;
-        min-height: auto;
-        background: transparent;
-    }
-    
-    /* 移动端导航栏移到底部 */
-    .page-wrapper {
-        flex-direction: column;
-    }
-    
-    .sidebar-toggle {
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        top: auto !important;
-        width: 100% !important;
-        height: 70px !important;
-        order: 999 !important;
-        z-index: 1000 !important;
-        box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.15) !important;
-    }
-    
-    .sidebar-toggle-inner {
-        flex-direction: row !important;
-        justify-content: center !important;
-        align-items: center !important;
-        gap: 16px !important;
-        width: 100% !important;
-        padding: 0 16px !important;
-    }
-    
-    .sidebar-toggle-btn {
-        width: auto !important;
-        min-width: 80px !important;
-        height: 50px !important;
-        padding: 8px 16px !important;
-        flex-direction: column !important;
-        gap: 4px !important;
-    }
-    
-    .sidebar-toggle-icon {
-        font-size: 20px !important;
-    }
-    
-    .sidebar-toggle-text {
-        font-size: 10px !important;
-    }
-    
-    .page-content {
-        padding-bottom: 80px !important;
-        flex: 1 !important;
-    }
-    
-    .container {
-        min-height: calc(100vh - 70px) !important;
     }
     
     /* 确保滚动条可见 */

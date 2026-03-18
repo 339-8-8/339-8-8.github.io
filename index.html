@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CS:GO 反向汰换模拟</title>
-    <link rel="stylesheet" href="css/index.css?v=26.3.17.5">
+    <link rel="stylesheet" href="css/index.css?v=26.3.17.14">
     <!-- <script>
         var _hmt = _hmt || [];
         (function() {
@@ -99,7 +99,7 @@
             <div class="right-container">
                 <div class="section tool-info">
                     <div class="tool-description">
-                        <p>数据仅供参考！功能不能保证！有什么问题和建议可以在小黑盒搜索"CS炼金反向汰换模拟"，在帖子下面评论反馈。</p>
+                        <p>有问题可以在小黑盒搜索"CS炼金反向汰换模拟"，在帖子下面反馈，可能会有吞评论的情况。皮肤价格是悠悠有品的，更新于26年3月18日，数据仅供参考！</p>
                     </div>
                 </div>
                 
@@ -109,6 +109,21 @@
                         <div id="resultsContainer">
                             <div class="no-data">请完成以上步骤后查看模拟结果</div>
                         </div>
+                    </div>
+                    
+                    <div class="similar-search-section">
+                        <div class="similar-search-title">🔍 相似皮肤查找</div>
+                        <div class="similar-search-interval">
+                            <span class="interval-label">最大磨损值区间：</span>
+                            <div class="interval-inputs">
+                                <input type="number" class="interval-input" id="minWearInterval" placeholder="下限" min="0" max="1" step="0.01">
+                                <span class="interval-separator">-</span>
+                                <span class="interval-current" id="currentMaxWear">-</span>
+                                <span class="interval-separator">-</span>
+                                <input type="number" class="interval-input" id="maxWearInterval" placeholder="上限" min="0" max="1" step="0.01">
+                            </div>
+                        </div>
+                        <button class="similar-search-btn" id="searchSimilarBtn">🔎 查找相似皮肤</button>
                     </div>
                 </div>
             </div>
@@ -318,6 +333,7 @@
     <script src="js/data.js"></script>
     <script src="js/original_skins_data.js"></script>
     <script src="js/processed_skins_data.js"></script>
+    <script src="js/yyyp_prices.js"></script>
     <script src="js/index.js"></script>
     <script src="js/user_inventory_enhanced.js"></script>
     <!-- <script>
