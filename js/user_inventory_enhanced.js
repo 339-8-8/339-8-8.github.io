@@ -887,26 +887,14 @@ const UserInventoryEnhanced = {
 
     // 增强的名称标准化函数
     normalizeSkinName: function(name) {
-        return name
-            .replace(/\s+/g, '') // 移除所有空格
-            .toLowerCase() // 转为小写
-            .replace(/x27/g, 'x27') // 统一X27格式
-            .replace(/ar/g, 'ar') // 统一AR格式
-            .replace(/cz75自动型/g, 'cz75') // 处理CZ75自动型变体
-            .replace(/cz75/g, 'cz75') // 统一CZ75格式
-            .replace(/mp5-sd/g, 'mp5sd') // 统一MP5-SD格式
-            .replace(/p2000/g, 'p2000') // 统一P2000格式
-            .replace(/m4a4/g, 'm4a4') // 统一M4A4格式
-            .replace(/scar-20/g, 'scar20') // 统一SCAR-20格式
-            .replace(/双持贝瑞塔/g, '双持贝瑞塔') // 统一双持贝瑞塔格式
-            .replace(/沙漠之鹰/g, '沙漠之鹰'); // 统一沙漠之鹰格式
+        return name.replace(/\s+/g, ''); // 移除所有空格
     },
 
     // 在data.js中查找匹配的皮肤（增强版）
     findMatchingSkin: function(skinName, casesData) {
         const normalizedInput = this.normalizeSkinName(skinName);
         
-        // 首先尝试精确匹配
+        // 精确匹配
         for (const crate of casesData) {
             for (const level of crate.levels) {
                 for (const skin of level.skins) {
@@ -920,46 +908,6 @@ const UserInventoryEnhanced = {
                             maxWear: skin.maxWear,
                             matched: true,
                             matchType: 'exact'
-                        };
-                    }
-                }
-            }
-        }
-        
-        // 然后尝试包含匹配
-        for (const crate of casesData) {
-            for (const level of crate.levels) {
-                for (const skin of level.skins) {
-                    const normalizedSkin = this.normalizeSkinName(skin.name);
-                    if (normalizedInput.includes(normalizedSkin) || normalizedSkin.includes(normalizedInput)) {
-                        return {
-                            crate: crate.name,
-                            grade: level.name,
-                            skin: skin.name,
-                            minWear: skin.minWear,
-                            maxWear: skin.maxWear,
-                            matched: true,
-                            matchType: 'contains'
-                        };
-                    }
-                }
-            }
-        }
-        
-        // 最后尝试部分匹配
-        for (const crate of casesData) {
-            for (const level of crate.levels) {
-                for (const skin of level.skins) {
-                    const normalizedSkin = this.normalizeSkinName(skin.name);
-                    if (normalizedInput.indexOf(normalizedSkin) !== -1 || normalizedSkin.indexOf(normalizedInput) !== -1) {
-                        return {
-                            crate: crate.name,
-                            grade: level.name,
-                            skin: skin.name,
-                            minWear: skin.minWear,
-                            maxWear: skin.maxWear,
-                            matched: true,
-                            matchType: 'partial'
                         };
                     }
                 }

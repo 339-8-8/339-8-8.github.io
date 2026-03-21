@@ -1297,6 +1297,51 @@ html {
         min-width: 80px;
     }
     
+    /* 移动端表单组样式 */
+    .form-group {
+        margin-bottom: 16px;
+    }
+    
+    .form-group:first-child {
+        margin-top: 8px;
+        margin-bottom: 20px;
+    }
+    
+    .form-group:first-child .form-label {
+        margin-bottom: 12px;
+    }
+    
+    .form-label {
+        font-size: 14px;
+        margin-bottom: 8px;
+        margin-top: 8px;
+    }
+    
+    .form-select {
+        padding: 12px 14px;
+        font-size: 14px;
+    }
+    
+    /* 移动端磨损值输入区域样式 */
+    .wear-section {
+        margin-top: 8px;
+    }
+    
+    .wear-input {
+        padding: 12px 14px;
+        font-size: 14px;
+    }
+    
+    .wear-quick-buttons {
+        gap: 6px;
+        margin-top: 8px;
+    }
+    
+    .wear-quick-btn {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+    
     /* 移动端相似皮肤查找区域样式 */
     .similar-search-section {
         flex-direction: column;
@@ -3935,6 +3980,350 @@ html {
     align-items: center;
     width: 100%;
     box-sizing: border-box;
+}
+
+/* 炼金配方页面样式 */
+#recipePage .container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 0;
+    margin: 0;
+}
+
+#recipePage .recipe-main-content {
+    flex-direction: column;
+    gap: 20px;
+    flex: 1;
+    height: 100%;
+    min-height: 0;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.recipe-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    height: 100%;
+    min-height: 0;
+}
+
+.recipe-filter-section {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    flex-shrink: 0;
+}
+
+.recipe-filter-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.recipe-filter-row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+}
+
+.recipe-filter-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.recipe-filter-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.recipe-filter-select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+}
+
+.recipe-price-range {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.recipe-price-input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.recipe-price-separator {
+    font-size: 14px;
+    color: #718096;
+    min-width: 20px;
+    text-align: center;
+}
+
+.recipe-checkbox-group {
+    flex-direction: row;
+    align-items: center;
+}
+
+.recipe-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #4a5568;
+    cursor: pointer;
+}
+
+.recipe-search-group {
+    flex: 0 0 auto;
+}
+
+.recipe-search-btn {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.recipe-search-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.recipe-result-section {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 400px;
+    height: 100%;
+}
+
+.recipe-result-info {
+    font-size: 14px;
+    color: #718096;
+    margin-bottom: 16px;
+    padding: 8px 12px;
+    background: #f7fafc;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+/* 进度条样式 */
+.recipe-progress {
+    margin-bottom: 16px;
+    flex-shrink: 0;
+}
+
+.recipe-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.recipe-progress-fill {
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.recipe-progress-text {
+    font-size: 12px;
+    color: #718096;
+    text-align: center;
+}
+
+.recipe-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    max-height: none;
+    scrollbar-gutter: stable;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.recipe-list::-webkit-scrollbar {
+    display: none;
+}
+
+.recipe-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+    gap: 16px;
+}
+
+.recipe-item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.recipe-skin-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.recipe-skin-crate {
+    font-size: 12px;
+    color: #718096;
+}
+
+.recipe-skin-price {
+    font-size: 14px;
+    font-weight: 600;
+    color: #38a169;
+    min-width: 80px;
+    text-align: right;
+}
+
+.recipe-skin-price.na {
+    color: #a0aec0;
+}
+
+/* 无结果样式 */
+.no-results-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    background: #fff5f5;
+    border-radius: 12px;
+    border: 1px solid #fed7d7;
+    margin: 20px 0;
+}
+
+.no-results-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.7;
+}
+
+.no-results-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #c53030;
+    margin-bottom: 16px;
+}
+
+.no-results-suggestions {
+    text-align: left;
+    max-width: 400px;
+}
+
+.no-results-suggestions p {
+    font-size: 14px;
+    color: #718096;
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+
+.no-results-suggestions ul {
+    font-size: 14px;
+    color: #718096;
+    line-height: 1.6;
+    padding-left: 20px;
+}
+
+.no-results-suggestions li {
+    margin-bottom: 8px;
+}
+
+/* 移动端炼金配方页面样式 */
+@media (max-width: 767px) {
+    #recipePage .container {
+        padding: 10px;
+    }
+    
+    .recipe-filter-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .recipe-filter-group {
+        flex: 1;
+    }
+    
+    .recipe-checkbox-group {
+        flex-direction: row;
+        justify-content: flex-start;
+    }
+    
+    .recipe-search-group {
+        flex: 1;
+    }
+    
+    .recipe-search-btn {
+        width: 100%;
+    }
+    
+    .recipe-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .recipe-skin-price {
+        align-self: flex-end;
+    }
+    
+    .no-results-container {
+        padding: 40px 15px;
+        margin: 15px 0;
+    }
+    
+    .no-results-icon {
+        font-size: 36px;
+    }
+    
+    .no-results-title {
+        font-size: 16px;
+    }
+    
+    .no-results-suggestions {
+        max-width: 100%;
+    }
 }
 
 .notice-grid {

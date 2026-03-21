@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CS:GO 反向汰换模拟</title>
-    <link rel="stylesheet" href="css/index.css?v=26.3.18.3">
+    <link rel="stylesheet" href="css/index.css?v=26.3.21.2">
     <script>
         var _hmt = _hmt || [];
         (function() {
@@ -41,6 +41,10 @@
                 <button class="sidebar-toggle-btn active" data-page="reverse" onclick="switchPage('reverse')">
                     <span class="sidebar-toggle-icon">🔄</span>
                     <span class="sidebar-toggle-text">反向汰换</span>
+                </button>
+                <button class="sidebar-toggle-btn" data-page="recipe" onclick="switchPage('recipe')">
+                    <span class="sidebar-toggle-icon">📜</span>
+                    <span class="sidebar-toggle-text">炼金配方</span>
                 </button>
                 <button class="sidebar-toggle-btn" data-page="quick" onclick="switchPage('quick')">
                     <span class="sidebar-toggle-icon">⚡</span>
@@ -108,7 +112,7 @@
             <div class="right-container">
                 <div class="section tool-info">
                     <div class="tool-description">
-                        <p>有问题可以在小黑盒搜索"CS炼金反向汰换模拟"，在帖子下面反馈，可能会有吞评论的情况。皮肤价格是悠悠有品的，更新于2026年3月18日，数据仅供参考！</p>
+                        <p>有问题可以在小黑盒搜索"CS炼金反向汰换模拟"评论反馈，可能有吞评论的情况。皮肤价格是悠悠有品的，更新于2026年3月21日，数据仅供参考！完整功能请使用PC端。</p>
                     </div>
                 </div>
                 
@@ -321,6 +325,78 @@
                 </div>
             </div>
         </div>
+        
+        <!-- 炼金配方页面 -->
+        <div class="page-panel" id="recipePage">
+            <div class="container">
+                <div class="main-content recipe-main-content">
+                    <div class="recipe-container">
+                        <div class="section recipe-filter-section">
+                            <div class="section-title">🔍 筛选条件</div>
+                            <div class="recipe-filter-content">
+                                <div class="recipe-filter-row">
+                                    <div class="recipe-filter-group">
+                                        <label class="recipe-filter-label">皮肤级别</label>
+                                        <select class="recipe-filter-select" id="recipeLevelSelect">
+                                            <option value="隐秘级" selected>隐秘</option>
+                                            <option value="保密级">保密</option>
+                                            <option value="受限级">受限</option>
+                                            <option value="军规级">军规</option>
+                                            <option value="工业级">工业</option>
+                                            <option value="消费级">消费</option>
+                                        </select>
+                                    </div>
+                                    <div class="recipe-filter-group">
+                                        <label class="recipe-filter-label">磨损级别</label>
+                                        <select class="recipe-filter-select" id="recipeWearLevelSelect">
+                                            <option value="崭新出厂" selected>崭新出厂</option>
+                                            <option value="略有磨损">略有磨损</option>
+                                            <option value="久经沙场">久经沙场</option>
+                                            <option value="破损不堪">破损不堪</option>
+                                            <option value="战痕累累">战痕累累</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="recipe-filter-row">
+                                    <div class="recipe-filter-group">
+                                        <label class="recipe-filter-label">价格范围</label>
+                                        <div class="recipe-price-range">
+                                            <input type="number" class="recipe-price-input" id="recipeMinPrice" placeholder="最低价" min="0" step="0.01" value="0">
+                                            <span class="recipe-price-separator">-</span>
+                                            <input type="number" class="recipe-price-input" id="recipeMaxPrice" placeholder="最高价" min="0" step="0.01" value="9999">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="recipe-filter-row">
+                                    <div class="recipe-filter-group recipe-checkbox-group">
+                                        <label class="recipe-checkbox-label">
+                                            <input type="checkbox" id="recipeIgnoreNoPrice" checked>
+                                            <span>忽略价格找不到的皮肤</span>
+                                        </label>
+                                    </div>
+                                    <div class="recipe-filter-group recipe-search-group">
+                                        <button class="recipe-search-btn" id="recipeSearchBtn">🔎 搜索</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="section recipe-result-section">
+                            <div class="section-title">📋 炼金材料列表</div>
+                            <div class="recipe-result-info" id="recipeResultInfo">请设置筛选条件后点击搜索</div>
+                            <div class="recipe-progress" id="recipeProgress" style="display: none;">
+                                <div class="recipe-progress-bar">
+                                    <div class="recipe-progress-fill" id="recipeProgressFill"></div>
+                                </div>
+                                <div class="recipe-progress-text" id="recipeProgressText">正在搜索...</div>
+                            </div>
+                            <div class="recipe-list" id="recipeList">
+                                <div class="no-data">请点击搜索按钮查看炼金配方</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -331,8 +407,5 @@
     <script src="js/yyyp_prices.js" defer></script>
     <script src="js/index.js" defer></script>
     <script src="js/user_inventory_enhanced.js" defer></script>
-    <!-- <script>
-        (new Image()).src = "https://visitor-badge.laobi.icu/badge?page_id=339-8-8.github.io";
-    </script> -->
 </body>
 </html>

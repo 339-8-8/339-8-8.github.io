@@ -15,17 +15,14 @@ const state = {
 let yyypPricesData = {};
 
 // 当前版本号（每次更新时修改此值）
-const APP_VERSION = '26.3.18.3';
+const APP_VERSION = '26.3.21.2';
 
 // 更新公告内容
 const UPDATE_NOTES = `
 <h3>更新公告 v${APP_VERSION}</h3>
 <ul>
-    <li>第一次加载数据需要一点时间</li>
-    <li>修改了页面布局，推荐在PC端使用，移动端只显示反向汰换</li>
-    <li>反向汰换可以修改相似皮肤查找的磨损区间</li>
-    <li>反向汰换模拟结果显示皮肤在悠悠有品的售价，仅作为炼金配方参考，不会经常更新</li>
-    <li>由于buff和yyyp的皮肤名字一小部分有差异，会导致皮肤价格获取不到</li>
+    <li>优化皮肤匹配，现在基本上都能找到了</li>
+    <li>更新皮肤价格</li>
 </ul>
 <p class="update-tip">点击空白处或关闭按钮关闭此窗口</p>
 `;
@@ -48,40 +45,131 @@ function getSkinPrice(skinName, wear) {
     
     const conditionName = getWearConditionName(wear);
     
-    // 尝试多种格式匹配
-    const searchPatterns = [
-        `${skinName} (${conditionName})`,  // 原始格式
-        `${skinName.replace(/\s+/g, ' ')} (${conditionName})`,  // 标准化空格
-        // 提取 | 后面的皮肤名称部分
-        ...(skinName.includes('|') ? [
-            `${skinName.split('|')[1].trim()} (${conditionName})`,
-            `${skinName.split('|')[1].trim().replace(/\s+/g, ' ')} (${conditionName})`
-        ] : [])
-    ];
+    // 第一种格式：去掉所有空格的完整皮肤名字
+    const pattern1 = `${skinName.replace(/\s+/g, '')}(${conditionName})`;
     
-    // 在YYYP价格数据中查找
-    for (const pattern of searchPatterns) {
-        if (yyypPricesData[pattern]) {
-            return yyypPricesData[pattern];
+    if (yyypPricesData[pattern1]) {
+        return yyypPricesData[pattern1];
+    }
+    
+    // 第二种格式：提取 | 后面的皮肤名称部分加磨损级别
+    if (skinName.includes('|')) {
+        const skinNamePart = skinName.split('|')[1].trim().replace(/\s+/g, '');
+        const pattern2 = `${skinNamePart}(${conditionName})`;
+        
+        // 查找所有包含该模式的键（模糊匹配）
+        const matchingKeys = Object.keys(yyypPricesData).filter(key => key.includes(pattern2));
+        
+        if (matchingKeys.length === 1) {
+            return yyypPricesData[matchingKeys[0]];
+        } else if (matchingKeys.length > 1) {
+            // 多个结果，需要智能选择
+            // 获取 | 前面的内容（武器名称）
+            const weaponPart = skinName.split('|')[0].trim().replace(/\s+/g, '');
+            
+            // 计算每个匹配结果的匹配率
+            let bestMatch = null;
+            let bestScore = -1;
+            
+            matchingKeys.forEach(key => {
+                // 提取价格数据中的武器名称部分
+                const keyWeaponPart = key.split('|')[0].replace(/\s+/g, '');
+                
+                // 计算匹配分数
+                let score = 0;
+                const minLen = Math.min(weaponPart.length, keyWeaponPart.length);
+                
+                // 逐字符比较
+                for (let i = 0; i < minLen; i++) {
+                    if (weaponPart[i] === keyWeaponPart[i]) {
+                        score++;
+                    } else {
+                        break; // 遇到不匹配就停止
+                    }
+                }
+                
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMatch = key;
+                }
+            });
+            
+            if (bestMatch) {
+                return yyypPricesData[bestMatch];
+            }
         }
     }
     
-    // 调试：检查所有可能的键名
-    console.log('未找到YYYP价格，尝试的格式:', searchPatterns);
-    console.log('尝试查找包含皮肤名的键:');
-    const normalizedSkinName = skinName.replace(/\s+/g, ' ');
-    const skinNamePart = skinName.includes('|') ? skinName.split('|')[1].trim() : skinName;
-    const matchingKeys = Object.keys(yyypPricesData).filter(key => 
-        key.includes(normalizedSkinName) || 
-        key.includes(skinName.replace(/\s+/g, '')) ||
-        key.includes(skinNamePart)
-    );
-    if (matchingKeys.length > 0) {
-        console.log('找到相关键:', matchingKeys.slice(0, 5));
-    } else {
-        console.log('未找到任何包含皮肤名的键');
+    console.log('未找到价格:', skinName, conditionName);
+    return '-';
+}
+
+// 根据皮肤名字和磨损级别获取价格
+function getSkinPriceByWearLevel(skinName, wearLevel) {
+    if (!yyypPricesData || Object.keys(yyypPricesData).length === 0) {
+        console.warn('YYYP价格数据未加载');
+        return '-';
     }
     
+    // 如果没有选择磨损级别，使用平均磨损值
+    const conditionName = wearLevel && wearLevel !== '全部磨损' ? wearLevel : getWearConditionName(0.15);
+    
+    // 第一种格式：去掉所有空格的完整皮肤名字
+    const pattern1 = `${skinName.replace(/\s+/g, '')}(${conditionName})`;
+    
+    if (yyypPricesData[pattern1]) {
+        return yyypPricesData[pattern1];
+    }
+    
+    // 第二种格式：提取 | 后面的皮肤名称部分加磨损级别
+    if (skinName.includes('|')) {
+        const skinNamePart = skinName.split('|')[1].trim().replace(/\s+/g, '');
+        const pattern2 = `${skinNamePart}(${conditionName})`;
+        
+        // 查找所有包含该模式的键（模糊匹配）
+        const matchingKeys = Object.keys(yyypPricesData).filter(key => key.includes(pattern2));
+        
+        if (matchingKeys.length === 1) {
+            return yyypPricesData[matchingKeys[0]];
+        } else if (matchingKeys.length > 1) {
+            // 多个结果，需要智能选择
+            // 获取 | 前面的内容（武器名称）
+            const weaponPart = skinName.split('|')[0].trim().replace(/\s+/g, '');
+            
+            // 计算每个匹配结果的匹配率
+            let bestMatch = null;
+            let bestScore = -1;
+            
+            matchingKeys.forEach(key => {
+                // 提取价格数据中的武器名称部分
+                const keyWeaponPart = key.split('|')[0].replace(/\s+/g, '');
+                
+                // 计算匹配分数
+                let score = 0;
+                const minLen = Math.min(weaponPart.length, keyWeaponPart.length);
+                
+                // 逐字符比较
+                for (let i = 0; i < minLen; i++) {
+                    if (weaponPart[i] === keyWeaponPart[i]) {
+                        score++;
+                    } else {
+                        break; // 遇到不匹配就停止
+                    }
+                }
+                
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMatch = key;
+                }
+            });
+            
+            if (bestMatch) {
+                return yyypPricesData[bestMatch];
+            }
+        }
+    }
+    
+    console.log('未找到价格:', skinName, conditionName);
     return '-';
 }
 
@@ -605,13 +693,13 @@ function calculateLowerWear(lowerSkin) {
 
 // 获取磨损状态和颜色
 function getWearCondition(wear) {
-    if (wear >= 0.45) {
+    if (wear > 0.45) {
         return { code: 'deep-red-brown', text: '战痕累累', color: '#8B4513' };
-    } else if (wear >= 0.38) {
+    } else if (wear > 0.38) {
         return { code: 'red', text: '破损不堪', color: '#FF6B6B' };
-    } else if (wear >= 0.15) {
+    } else if (wear > 0.15) {
         return { code: 'yellow', text: '久经沙场', color: '#FFD93D' };
-    } else if (wear >= 0.07) {
+    } else if (wear > 0.07) {
         return { code: 'light-green', text: '略有磨损', color: '#6BCF7F' };
     } else {
         return { code: 'dark-green', text: '崭新出厂', color: '#2E8B57' };
@@ -883,3 +971,240 @@ function clearResults() {
 
 // 启动应用
 document.addEventListener('DOMContentLoaded', init);
+
+// 炼金配方功能
+function initRecipePage() {
+    const searchBtn = document.getElementById('recipeSearchBtn');
+    if (searchBtn) {
+        searchBtn.addEventListener('click', searchRecipes);
+    }
+}
+
+// 搜索炼金配方
+function searchRecipes() {
+    const levelSelect = document.getElementById('recipeLevelSelect');
+    const wearLevelSelect = document.getElementById('recipeWearLevelSelect');
+    const minPriceInput = document.getElementById('recipeMinPrice');
+    const maxPriceInput = document.getElementById('recipeMaxPrice');
+    const ignoreNoPriceCheckbox = document.getElementById('recipeIgnoreNoPrice');
+    const progressBar = document.getElementById('recipeProgress');
+    const progressFill = document.getElementById('recipeProgressFill');
+    const progressText = document.getElementById('recipeProgressText');
+    const recipeList = document.getElementById('recipeList');
+    
+    const selectedLevel = levelSelect.value;
+    const selectedWearLevel = wearLevelSelect.value;
+    const minPrice = parseFloat(minPriceInput.value) || 0;
+    const maxPrice = parseFloat(maxPriceInput.value) || 9999;
+    const ignoreNoPrice = ignoreNoPriceCheckbox.checked;
+    
+    // 显示加载进度条
+    if (progressBar) {
+        progressBar.style.display = 'block';
+        progressFill.style.width = '0%';
+        progressText.textContent = '正在搜索配方...';
+    }
+    
+    // 隐藏结果列表
+    if (recipeList) {
+        recipeList.style.display = 'none';
+    }
+    
+    // 使用setTimeout来确保UI更新
+    setTimeout(() => {
+        // 第一步：在data.js里找符合皮肤级别条件的皮肤
+        const filteredSkins = [];
+        
+        state.cases.forEach(crate => {
+            crate.levels.forEach(level => {
+                // 筛选皮肤级别
+                if (level.name === selectedLevel) {
+                    level.skins.forEach(skin => {
+                        // 计算推荐值 = (maxWear + minWear) / 2
+                        const recommendValue = (skin.maxWear + skin.minWear) / 2;
+                        
+                        filteredSkins.push({
+                            name: skin.name,
+                            crate: crate.name,
+                            level: level.name,
+                            minWear: skin.minWear,
+                            maxWear: skin.maxWear,
+                            recommendValue: recommendValue
+                        });
+                    });
+                }
+            });
+        });
+        
+        // 更新进度条
+        if (progressFill) {
+            progressFill.style.width = '30%';
+        }
+        if (progressText) {
+            progressText.textContent = `找到 ${filteredSkins.length} 个符合条件的皮肤`;
+        }
+        
+        // 第二步：按推荐值从大到小排序
+        filteredSkins.sort((a, b) => b.recommendValue - a.recommendValue);
+        
+        // 更新进度条
+        if (progressFill) {
+            progressFill.style.width = '50%';
+        }
+        if (progressText) {
+            progressText.textContent = '正在查找价格...';
+        }
+        
+        // 第三步：使用皮肤名字和磨损级别查找价格
+        const resultSkins = [];
+        let processedCount = 0;
+        
+        filteredSkins.forEach(skin => {
+            const price = getSkinPriceByWearLevel(skin.name, selectedWearLevel);
+            const priceValue = price === '-' ? 0 : price;
+            
+            // 筛选价格范围
+            if (priceValue >= minPrice && priceValue <= maxPrice) {
+                // 筛选价格找不到的皮肤
+                if (!ignoreNoPrice || price !== '-') {
+                    resultSkins.push({
+                        name: skin.name,
+                        crate: skin.crate,
+                        level: skin.level,
+                        wearLevel: selectedWearLevel,
+                        recommendValue: skin.recommendValue,
+                        price: price,
+                        priceValue: priceValue
+                    });
+                }
+            }
+            
+            processedCount++;
+            const progress = 50 + Math.round((processedCount / filteredSkins.length) * 50);
+            if (progressFill) {
+                progressFill.style.width = progress + '%';
+            }
+            if (progressText) {
+                progressText.textContent = `正在查找价格... ${processedCount}/${filteredSkins.length}`;
+            }
+        });
+        
+        // 完成进度条
+        if (progressFill) {
+            progressFill.style.width = '100%';
+        }
+        if (progressText) {
+            progressText.textContent = '搜索完成！';
+        }
+        
+        // 延迟显示结果，让用户看到完成状态
+        setTimeout(() => {
+            // 隐藏进度条
+            if (progressBar) {
+                progressBar.style.display = 'none';
+            }
+            
+            // 显示结果
+            displayRecipeResults(resultSkins);
+            
+            // 显示结果列表
+            if (recipeList) {
+                recipeList.style.display = 'block';
+            }
+        }, 500);
+        
+    }, 100);
+}
+
+// 显示炼金配方结果
+function displayRecipeResults(skins) {
+    const resultInfo = document.getElementById('recipeResultInfo');
+    const recipeList = document.getElementById('recipeList');
+    
+    if (!resultInfo || !recipeList) return;
+    
+    // 更新结果信息
+    if (skins.length === 0) {
+        resultInfo.textContent = '未找到符合条件的皮肤';
+        resultInfo.style.background = '#fff5f5';
+        resultInfo.style.color = '#c53030';
+        resultInfo.style.borderLeft = '4px solid #fc8181';
+        
+        recipeList.innerHTML = `
+            <div class="no-results-container">
+                <div class="no-results-icon">🔍</div>
+                <div class="no-results-title">没有找到符合条件的皮肤</div>
+                <div class="no-results-suggestions">
+                    <p>建议您：</p>
+                    <ul>
+                        <li>尝试放宽筛选条件</li>
+                        <li>检查价格范围设置</li>
+                        <li>取消勾选"忽略价格找不到的皮肤"</li>
+                        <li>选择"全部级别"进行搜索</li>
+                    </ul>
+                </div>
+            </div>
+        `;
+    } else {
+        resultInfo.textContent = `找到 ${skins.length} 个符合条件的皮肤`;
+        resultInfo.style.background = '#f7fafc';
+        resultInfo.style.color = '#718096';
+        resultInfo.style.borderLeft = '4px solid #667eea';
+        
+        // 生成列表
+        let html = '';
+        skins.forEach(skin => {
+            const priceClass = skin.price === '-' ? 'na' : '';
+            html += `
+            <div class="recipe-item">
+                <div class="recipe-item-info">
+                    <div class="recipe-skin-name">${skin.name}</div>
+                    <div class="recipe-skin-crate">${skin.crate} | ${skin.level} | ${skin.wearLevel} | 推荐值: ${skin.recommendValue.toFixed(4)}</div>
+                </div>
+                <div class="recipe-skin-price ${priceClass}">¥${skin.price}</div>
+            </div>
+            `;
+        });
+        
+        recipeList.innerHTML = html;
+    }
+}
+
+// 在init函数中初始化炼金配方页面
+function init() {
+    // 更新加载进度
+    updateLoadingProgress('正在初始化...');
+    
+    // 重新获取DOM元素，确保在DOM加载完成后
+    elements.searchInput = document.getElementById('searchInput');
+    elements.caseList = document.getElementById('caseList');
+    elements.levelSelect = document.getElementById('levelSelect');
+    elements.skinSelect = document.getElementById('skinSelect');
+    elements.wearInput = document.getElementById('wearInput');
+    elements.wearRange = document.getElementById('wearRange');
+    elements.calculateBtn = document.getElementById('calculateBtn');
+    elements.resultsContainer = document.getElementById('resultsContainer');
+    
+    // 检查是否所有必需的元素都存在
+    if (!elements.levelSelect || !elements.caseList) {
+        console.error('Required DOM elements not found');
+        hideLoading();
+        return;
+    }
+    
+    // 加载皮肤价格数据
+    loadSkinPrices();
+    
+    renderCaseList();
+    setupEventListeners();
+    checkUpdateNotes();
+    initRecipePage(); // 初始化炼金配方页面
+    
+    // 默认选择第一个武器箱
+    if (state.cases.length > 0) {
+        selectCase(state.cases[0]);
+    }
+    
+    // 隐藏加载提示
+    hideLoading();
+}
